@@ -1,18 +1,18 @@
-#include<stdio.h>
-#include<inttypes.h>
+#include <inttypes.h>
+#include <stdio.h>
 
 // Дана последовательность ненулевых целых чисел, в конце последовательности число 0. Посчитать количество чисел.
 // Формат входных данных: Целые ненулевые числа. В конце последовательности ноль. Ноль в последовательность не входит.
 
 int main(void)
 {
-    int32_t n=1;
-    uint32_t count=0;
+    int32_t n = 1;
+    uint32_t count = 0;
 
-    while(n)
-    {
+    while (n) {
         scanf("%d", &n);
-        if(!n)break;
+        if (!n)
+            break;
         count++;
     }
 

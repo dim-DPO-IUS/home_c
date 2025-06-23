@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
         args.printdb > number ? args.printdb = number : number;
         print(database, args.printdb);
     }
-    else if(args.filename) // статистика за год
+    else if(args.filename) // имя файла
         printf("%s\n", args.filename);
 
     return 0;

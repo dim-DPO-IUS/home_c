@@ -2,7 +2,7 @@
 
 // Статистика ИЛИ по месяцу ИЛИ по году
 // Или month или year должны быть равны 0
-void print_stats(sensor* data, size_t count, uint8_t month, uint16_t year)
+void print_stats(sensor_t* data, size_t count, uint8_t month, uint16_t year)
 {
     if(month + year == 0 || month * year != 0)
     {
@@ -42,7 +42,7 @@ void print_stats(sensor* data, size_t count, uint8_t month, uint16_t year)
 }
 
 // Добавление одной записи. Создание массива структур
-void add_record(sensor* data,
+void add_record(sensor_t* data,
                 int number,
                 uint16_t year,
                 uint8_t month,
@@ -60,7 +60,7 @@ void add_record(sensor* data,
 }
 
 // Добавление набора записей
-int add_records(sensor* data, int count)
+int add_records(sensor_t* data, int count)
 {
     // int counter = 0;
     // add_record(data, counter++, 2021, 9, 16, 12, 30, 9);
@@ -79,7 +79,7 @@ int add_records(sensor* data, int count)
 }
 
 // Поиск индекса записи
-int find_index(sensor data[],
+int find_index(sensor_t data[],
                int size,
                uint16_t year,
                uint8_t month,
@@ -99,7 +99,7 @@ int find_index(sensor data[],
 }
 
 // Удаление по индексу (возвращает новый размер)
-int remove_by_index(sensor* data, int size, int index)
+int remove_by_index(sensor_t* data, int size, int index)
 {
     if(index < 0 || index >= size)
     {
@@ -116,7 +116,7 @@ int remove_by_index(sensor* data, int size, int index)
 }
 
 // Удаление по дате (возвращает новый размер)
-int remove_by_date(sensor* data,
+int remove_by_date(sensor_t* data,
                    int size,
                    uint16_t year,
                    uint8_t month,
@@ -138,7 +138,7 @@ int remove_by_date(sensor* data,
 }
 
 // Печать массива записей
-void print(sensor* data, int number)
+void print(sensor_t* data, int number)
 {
     // printf("===================================\n");
     // for(int i = 0; i < number; i++)
@@ -166,16 +166,16 @@ void print(sensor* data, int number)
 }
 
 // Меняет местами data[i] <--> data[j]
-void changeIJ(sensor* data, int i, int j)
+void changeIJ(sensor_t* data, int i, int j)
 {
-    sensor temp;
+    sensor_t temp;
     temp = data[i];
     data[i] = data[j];
     data[j] = temp;
 }
 
 // Упорядочить по дате
-void sort_by_date(sensor* data, int n)
+void sort_by_date(sensor_t* data, int n)
 {
     for(int i = 0; i < n; ++i)
         for(int j = i; j < n; ++j)
@@ -184,7 +184,7 @@ void sort_by_date(sensor* data, int n)
 }
 
 // Упорядочить по температуре по неубыванию
-void sort_by_t(sensor* data, int n)
+void sort_by_t(sensor_t* data, int n)
 {
     for(int i = 0; i < n; ++i)
         for(int j = i; j < n; ++j)
@@ -193,7 +193,7 @@ void sort_by_t(sensor* data, int n)
 }
 
 //
-unsigned int date_to_int(sensor* data)
+unsigned int date_to_int(sensor_t* data)
 {
     return data->year << 16 | data->month << 8 | data->day;
 }
@@ -205,7 +205,7 @@ int random_int(int min, int max)
 }
 
 // Генератор записей (возвращает количество сгенерированных записей)
-int generate_sensor_data(sensor* data, int count)
+int generate_sensor_data(sensor_t* data, int count)
 {
     if(data == NULL || count <= 0)
     {
@@ -252,7 +252,7 @@ int generate_sensor_data(sensor* data, int count)
 // Возвращает:
 //  1: при вызове справки
 //  -1: при ошибке
-int parse_arguments(int argc, char* argv[], cmd_args* args)
+int parse_arguments(int argc, char* argv[], cmd_args_t* args)
 {
     // Установка значений по умолчанию
     args->filename = NULL;

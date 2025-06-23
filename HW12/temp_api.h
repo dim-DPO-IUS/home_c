@@ -35,7 +35,7 @@ typedef struct
     uint8_t hour;       ///< Hour (0-23)
     uint8_t minute;     ///< Minute (0-59)
     int8_t temperature; ///< Temperature in Celsius
-} sensor;
+} sensor_t;
 
 /**
  * @brief Command line arguments structure
@@ -48,7 +48,7 @@ typedef struct
     uint8_t printdb;      ///< Print first N records (-p)
     // int debug_mode;       ///< Debug mode flag (reserved)
     // int seed;             ///< Random seed (reserved)
-} cmd_args;
+} cmd_args_t;
 
 /*----------------------------------------------------------------------------*/
 /*                              CONSTANTS                                     */
@@ -81,7 +81,7 @@ static const char* HELP_MSG =
  * @param minute Minute value (0-59)
  * @param t Temperature value
  */
-void add_record(sensor* data,
+void add_record(sensor_t* data,
                 int number,
                 uint16_t year,
                 uint8_t month,
@@ -96,7 +96,7 @@ void add_record(sensor* data,
  * @param count Number of records to add
  * @return Total number of records after addition
  */
-int add_records(sensor* data, int count);
+int add_records(sensor_t* data, int count);
 
 /**
  * @brief Find index of a specific record
@@ -109,7 +109,7 @@ int add_records(sensor* data, int count);
  * @param minute Minute to search (0-59)
  * @return Index of found record or -1 if not found
  */
-int find_index(sensor data[],
+int find_index(sensor_t data[],
                int size,
                uint16_t year,
                uint8_t month,
@@ -124,7 +124,7 @@ int find_index(sensor data[],
  * @param index Index to remove
  * @return New array size after removal
  */
-int remove_by_index(sensor* data, int size, int index);
+int remove_by_index(sensor_t* data, int size, int index);
 
 /**
  * @brief Remove records by date
@@ -135,7 +135,7 @@ int remove_by_index(sensor* data, int size, int index);
  * @param day Day to remove (1-31)
  * @return New array size after removal
  */
-int remove_by_date(sensor* data,
+int remove_by_date(sensor_t* data,
                    int size,
                    uint16_t year,
                    uint8_t month,
@@ -150,14 +150,14 @@ int remove_by_date(sensor* data,
  * @param month Month to filter (0 for all months)
  * @param year Year to filter (0 for all years)
  */
-void print_stats(sensor* data, size_t count, uint8_t month, uint16_t year);
+void print_stats(sensor_t* data, size_t count, uint8_t month, uint16_t year);
 
 /**
  * @brief Print sensor data records
  * @param data Sensor data array
  * @param number Number of records to print
  */
-void print(sensor* data, int number);
+void print(sensor_t* data, int number);
 
 /**
  * @brief Swap two records in the array
@@ -165,28 +165,28 @@ void print(sensor* data, int number);
  * @param i First index
  * @param j Second index
  */
-void changeIJ(sensor* data, int i, int j);
+void changeIJ(sensor_t* data, int i, int j);
 
 /**
  * @brief Sort records by date
  * @param data Sensor data array
  * @param n Number of records
  */
-void sort_by_date(sensor* data, int n);
+void sort_by_date(sensor_t* data, int n);
 
 /**
  * @brief Sort records by temperature (ascending)
  * @param data Sensor data array
  * @param n Number of records
  */
-void sort_by_t(sensor* data, int n);
+void sort_by_t(sensor_t* data, int n);
 
 /**
  * @brief Convert date to integer representation
  * @param data Sensor data record
  * @return Integer representation of the date
  */
-unsigned int date_to_int(sensor* data);
+unsigned int date_to_int(sensor_t* data);
 
 /*---------------------------- Data Generation -------------------------------*/
 
@@ -204,7 +204,7 @@ int random_int(int min, int max);
  * @param count Number of records to generate
  * @return Number of generated records
  */
-int generate_sensor_data(sensor* data, int count);
+int generate_sensor_data(sensor_t* data, int count);
 
 /*---------------------------- Command Line Interface ------------------------*/
 
@@ -215,6 +215,6 @@ int generate_sensor_data(sensor* data, int count);
  * @param args Output structure for parsed arguments
  * @return 1 if help was requested, -1 on error, 0 on success
  */
-int parse_arguments(int argc, char* argv[], cmd_args* args);
+int parse_arguments(int argc, char* argv[], cmd_args_t* args);
 
 #endif // TEMP_API_H

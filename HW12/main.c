@@ -4,10 +4,10 @@
 
 int main(int argc, char* argv[])
 {
-    sensor database[MAX_ENTRIES]; // массив структур для базы данных
+    sensor_t database[MAX_ENTRIES]; // массив структур для базы данных
     int number = add_records(database, 20); // добавить 20 случайных записей
 
-    cmd_args args; // структура для парсера аргументов
+    cmd_args_t args; // структура для парсера аргументов
     int result = parse_arguments(argc, argv, &args); // парсим аргументы
     // ----------------------------------------------
 

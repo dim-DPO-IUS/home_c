@@ -165,7 +165,7 @@ void print(sensor* data, int number);
  * @param i First index
  * @param j Second index
  */
-void cgangeIJ(sensor* data, int i, int j);
+void changeIJ(sensor* data, int i, int j);
 
 /**
  * @brief Sort records by date

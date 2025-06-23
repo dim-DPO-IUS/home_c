@@ -2,10 +2,7 @@
 
 // Статистика ИЛИ по месяцу ИЛИ по году
 // Или month или year должны быть равны 0
-void print_stats(sensor* data,
-                 size_t count,
-                 uint8_t month,
-                 uint16_t year)
+void print_stats(sensor* data, size_t count, uint8_t month, uint16_t year)
 {
     if(month + year == 0 || month * year != 0)
     {
@@ -169,7 +166,7 @@ void print(sensor* data, int number)
 }
 
 // Меняет местами data[i] <--> data[j]
-void cgangeIJ(sensor* data, int i, int j)
+void changeIJ(sensor* data, int i, int j)
 {
     sensor temp;
     temp = data[i];
@@ -183,7 +180,7 @@ void sort_by_date(sensor* data, int n)
     for(int i = 0; i < n; ++i)
         for(int j = i; j < n; ++j)
             if(date_to_int(data + i) >= date_to_int(data + j))
-                cgangeIJ(data, i, j);
+                changeIJ(data, i, j);
 }
 
 // Упорядочить по температуре по неубыванию
@@ -192,7 +189,7 @@ void sort_by_t(sensor* data, int n)
     for(int i = 0; i < n; ++i)
         for(int j = i; j < n; ++j)
             if(data[i].temperature >= data[j].temperature)
-                cgangeIJ(data, i, j);
+                changeIJ(data, i, j);
 }
 
 //

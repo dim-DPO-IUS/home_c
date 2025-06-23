@@ -4,7 +4,7 @@ CC = gcc
 # 	-Wall - показывать все предупреждения
 # 	-Wextra - дополнительные предупреждения
 # 	-std=c11 - использовать стандарт C11
-CFLAGS = -Wall -Wextra -std=c11 -Wno-unused-variable
+CFLAGS = -Wall -Wextra -std=c11
 # 	ВРЕМЕННО! это отключит все предупреждения о неиспользуемых переменных
 CFLAGS += -Wno-unused-variable
 

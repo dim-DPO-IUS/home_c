@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdint.h> // uint*_t types
 #include <limits.h> // MIN/MAX constants
+#include <string.h>
 #include <stdlib.h>
 #include <time.h> // Random number generation
 
@@ -160,14 +161,6 @@ void print_stats(sensor_t* data, size_t count, uint8_t month, uint16_t year);
 void print(sensor_t* data, int number);
 
 /**
- * @brief Swap two records in the array
- * @param data Sensor data array
- * @param i First index
- * @param j Second index
- */
-void changeIJ(sensor_t* data, int i, int j);
-
-/**
  * @brief Sort records by date
  * @param data Sensor data array
  * @param n Number of records
@@ -181,22 +174,7 @@ void sort_by_date(sensor_t* data, int n);
  */
 void sort_by_t(sensor_t* data, int n);
 
-/**
- * @brief Convert date to integer representation
- * @param data Sensor data record
- * @return Integer representation of the date
- */
-unsigned int date_to_int(sensor_t* data);
-
 /*---------------------------- Data Generation -------------------------------*/
-
-/**
- * @brief Generate random integer in range
- * @param min Minimum value
- * @param max Maximum value
- * @return Random integer in [min, max]
- */
-int random_int(int min, int max);
 
 /**
  * @brief Generate random sensor data

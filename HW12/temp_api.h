@@ -67,7 +67,7 @@ void add_record(struct sensor* data,
                 int8_t t);
 
 // Добавление набора записей
-int add_records(struct sensor* data);
+int add_records(struct sensor* data, int count);
 
 // Поиск индекса записи
 int find_index(struct sensor data[],

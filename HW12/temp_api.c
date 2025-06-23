@@ -63,7 +63,7 @@ void add_record(struct sensor* data,
 }
 
 // Добавление набора записей
-int add_records(struct sensor* data)
+int add_records(struct sensor* data, int count)
 {
     // int counter = 0;
     // add_record(data, counter++, 2021, 9, 16, 12, 30, 9);
@@ -77,7 +77,7 @@ int add_records(struct sensor* data)
     // Инициализация генератора случайных чисел
     srand(time(NULL));
     // Генерация данных
-    int counter = generate_sensor_data(data, 20);
+    int counter = generate_sensor_data(data, count);
     return counter;
 }
 

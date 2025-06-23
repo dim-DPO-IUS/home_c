@@ -255,7 +255,7 @@ int generate_sensor_data(sensor* data, int count)
 // Возвращает:
 //  1: при вызове справки
 //  -1: при ошибке
-int parse_arguments(int argc, char* argv[], struct cmd_args* args)
+int parse_arguments(int argc, char* argv[], cmd_args* args)
 {
     // Установка значений по умолчанию
     args->filename = NULL;

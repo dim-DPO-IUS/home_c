@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-    struct sensor database[MAX_ENTRIES]; // массив структур для базы данных
+    sensor database[MAX_ENTRIES]; // массив структур для базы данных
     int number = add_records(database, 20); // добавить 20 случайных записей
 
     struct cmd_args args; // структура для парсера аргументов

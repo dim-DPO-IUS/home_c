@@ -1,30 +1,51 @@
 #ifndef TEMP_API_H
 #define TEMP_API_H
-/*******************************************************************
- *                               FILE HEADER                       *
- *                                                                 *
- * Project:    Course Project                                      *
- * File:       temp_api.h                                          *
- * Author:     Konoplev Dmitriy                                    *
- * Created:    2025-06-19                                          *
- *******************************************************************/
-#include <stdio.h>
-#include <stdint.h> // uint*_t
-#include <limits.h> // MIN/MAX
-//
-#include <stdlib.h>
-#include <time.h> // ГСЧ
 
-// Структура для хранения данных о температуре
-struct sensor
+/*******************************************************************************
+ *                               FILE HEADER                                   *
+ *                                                                             *
+ * Project:    Course Project                                                  *
+ * File:       temp_api.h                                                      *
+ * Author:     Konoplev Dmitriy                                                *
+ * Created:    2025-06-19                                                      *
+ * Description: API for temperature data processing                            *
+ *******************************************************************************/
+
+/*----------------------------------------------------------------------------*/
+/*                                INCLUDES                                    */
+/*----------------------------------------------------------------------------*/
+#include <stdio.h>
+#include <stdint.h> // uint*_t types
+#include <limits.h> // MIN/MAX constants
+#include <stdlib.h>
+#include <time.h> // Random number generation
+
+/*----------------------------------------------------------------------------*/
+/*                              DATA STRUCTURES                               */
+/*----------------------------------------------------------------------------*/
+
+/**
+ * @brief Temperature sensor data structure
+ */
+typedef struct
 {
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t minute;
-    int8_t temperature;
-};
+    uint16_t year;      ///< Year (e.g. 2025)
+    uint8_t month;      ///< Month (1-12)
+    uint8_t day;        ///< Day (1-31)
+    uint8_t hour;       ///< Hour (0-23)
+    uint8_t minute;     ///< Minute (0-59)
+    int8_t temperature; ///< Temperature in Celsius
+} sensor;
+
+// struct sensor
+// {
+//     uint16_t year;
+//     uint8_t month;
+//     uint8_t day;
+//     uint8_t hour;
+//     uint8_t minute;
+//     int8_t temperature;
+// };
 
 // Структура для хранения ключей из командной строки
 struct cmd_args
@@ -51,13 +72,13 @@ static const char* HELP_MSG =
 
 // Вывод статистики ИЛИ за месяц ИЛИ за год
 // Или month или year должны быть равны 0
-void print_stats(struct sensor* data,
+void print_stats(sensor* data,
                  size_t count,
                  uint8_t month,
                  uint16_t year);
 
 // Добавление одной записи. Создание массива структур
-void add_record(struct sensor* data,
+void add_record(sensor* data,
                 int number,
                 uint16_t year,
                 uint8_t month,
@@ -67,10 +88,10 @@ void add_record(struct sensor* data,
                 int8_t t);
 
 // Добавление набора записей
-int add_records(struct sensor* data, int count);
+int add_records(sensor* data, int count);
 
 // Поиск индекса записи
-int find_index(struct sensor data[],
+int find_index(sensor data[],
                int size,
                uint16_t year,
                uint8_t month,
@@ -79,35 +100,35 @@ int find_index(struct sensor data[],
                uint8_t minute);
 
 // Удаление по индексу (возвращает новый размер)
-int remove_by_index(struct sensor* data, int size, int index);
+int remove_by_index(sensor* data, int size, int index);
 
 // Удаление по дате (возвращает новый размер)
-int remove_by_date(struct sensor* data,
+int remove_by_date(sensor* data,
                    int size,
                    uint16_t year,
                    uint8_t month,
                    uint8_t day);
 
 // Печать массива записей
-void print(struct sensor* data, int number);
+void print(sensor* data, int number);
 
 //
-void cgangeIJ(struct sensor* data, int i, int j);
+void cgangeIJ(sensor* data, int i, int j);
 
 // Упорядочить по дате
-void sort_by_date(struct sensor* data, int n);
+void sort_by_date(sensor* data, int n);
 
 // Упорядочить по температуре по неубыванию
-void sort_by_t(struct sensor* data, int n);
+void sort_by_t(sensor* data, int n);
 
 //
-unsigned int date_to_int(struct sensor* data);
+unsigned int date_to_int(sensor* data);
 
 // Функция для генерации случайного числа в диапазоне
 int random_int(int min, int max);
 
 // Генератор записей (возвращает количество сгенерированных записей)
-int generate_sensor_data(struct sensor* data, int count);
+int generate_sensor_data(sensor* data, int count);
 
 // Парсер аргументов командной строки
 // Возвращает:

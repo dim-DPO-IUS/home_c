@@ -7,11 +7,12 @@
 /**
  * @brief Convert date to integer representation for comparison
  * @param data Pointer to sensor data
- * @return Integer representation of the date (YYYYMMDD)
+ * @return Integer representation of the date (YYYYMMDDhhmm)
  */
 unsigned int date_to_int(sensor_t* data)
 {
-    return data->year << 16 | data->month << 8 | data->day;
+    return data->year << 24 | data->month << 16 | data->day << 8
+           | data->hour << 4 | data->minute;
 }
 
 /**
@@ -183,8 +184,7 @@ void sort_by_t(sensor_t* data, int n)
 {
     for(int i = 0; i < n; ++i)
         for(int j = i; j < n; ++j)
-            if(data[i].temperature >= data[j].temperature)
-                changeIJ(data, i, j);
+            if(data[i].temperature >= data[j].temperature) changeIJ(data, i, j);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -258,8 +258,7 @@ int parse_arguments(int argc, char* argv[], cmd_args_t* args)
         char* arg = argv[i];
 
         // Пропускаем не-флаги (например, значения аргументов)
-        if(arg[0] != '-')
-            continue;
+        if(arg[0] != '-') continue;
 
         // Проверяем, что после флага есть значение (если требуется)
         if(i + 1 >= argc || argv[i + 1][0] == '-')

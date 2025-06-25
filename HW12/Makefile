@@ -1,39 +1,18 @@
-# какой компилятор использовать (gcc)
-CC = gcc
-# флаги компиляции:
-# 	-Wall - показывать все предупреждения
-# 	-Wextra - дополнительные предупреждения
-# 	-std=c11 - использовать стандарт C11
-CFLAGS = -Wall -Wextra -std=c11
-# 	ВРЕМЕННО! это отключит все предупреждения о неиспользуемых переменных
-CFLAGS += -Wno-unused-variable
-
-# Имя исполняемого файла
+# HW12/Makefile
 TARGET = temp_app
+SRCS = temp_api.c main.c  # Все .c-файлы в текущей папке
+CFLAGS = -Wall -Wextra -g  # Ключ -g добавляет отладочную информацию
 
-# Цель по умолчанию - создание программы temp_app
+.PHONY: all clean print-target
+ 
 all: $(TARGET)
 
-# Правило: Сборка программы
-$(TARGET): main.o temp_api.o
+$(TARGET): $(SRCS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-# Правило: Компиляция main.c
-main.o: main.c temp_api.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Правило: Компиляция temp_api.c в temp_api.o
-temp_api.o: temp_api.c temp_api.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Псевдоцели для совместимости с общим Makefile
-debug: all
-release: all
-run: all
-	@echo "Запуск программы..."
-	@./$(TARGET) || echo "Ошибка при запуске программы"
-rebuild: clean all
-
-# Очистка проекта
 clean:
-	rm -f *.o $(TARGET)
+	rm -f $(TARGET)
+
+# Чтобы автоматически передать имя бинарника  в tasks.json
+print-target:  
+	@echo $(TARGET)  

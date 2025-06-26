@@ -1,18 +1,46 @@
-# HW12/Makefile
-TARGET = temp_app
-SRCS = temp_api.c main.c  # Все .c-файлы в текущей папке
-CFLAGS = -Wall -Wextra -g  # Ключ -g добавляет отладочную информацию
+# Исходные файлы
+SRCS = main.c temp_api.c
+HEADERS = temp_api.h
 
-.PHONY: all clean print-target
- 
+# Компилятор и флаги
+CC = gcc
+# Флаги компиляции:
+CFLAGS = -Wall -Wextra -std=c11
+CFLAGS += -Wno-unused-variable
+CFLAGS += -ggdb3 -Og
+# Флаги линковки: отладочная информация
+LDFLAGS = -ggdb3
+
+# Имя исполняемого файла
+TARGET = temp_app
+
+# Автоматическое определение объектных файлов
+OBJS = $(SRCS:.c=.o) 
+
+# Основная цель
 all: $(TARGET)
 
-$(TARGET): $(SRCS)
-	$(CC) $(CFLAGS) -o $@ $^
+# Правило линковки
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+
+# Обобщенное правило компиляции .c файлов в .o
+%.o: %.c $(HEADERS)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Вспомогательные цели
+.PHONY: all debug release run rebuild clean print-target
+
+debug release: all
+
+run: all
+	@echo "Запуск программы..."
+	@./$(TARGET) || echo "Ошибка при запуске программы"
+
+rebuild: clean all
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(OBJS) $(TARGET)
 
-# Чтобы автоматически передать имя бинарника  в tasks.json
-print-target:  
-	@echo $(TARGET)  
+print-target:
+	@echo $(TARGET)

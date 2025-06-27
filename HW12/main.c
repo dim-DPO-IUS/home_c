@@ -22,7 +22,6 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    sort_by_date(database, number);
     
     /* Process command line options */
     if(args.month) // статистика за месяц

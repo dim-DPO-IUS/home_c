@@ -40,6 +40,41 @@ int random_int(int min, int max)
     return min + rand() % (max - min + 1);
 }
 
+/**
+ * @brief Подсчитывает количество строк в файле.
+ * @param filename Имя файла.
+ * @return Количество строк (0 при ошибке).
+ */
+static size_t count_lines_in_file(const char* filename)
+{
+    /* Предполагается, что файл имеет следующий формат (каждая строка - одна
+    запись):
+    2025 6 15 14 30 25
+    2025 6 15 15 00 26
+    ... */
+    FILE* file = fopen(filename, "r");
+    if(!file)
+    {
+        perror("Failed to open file");
+        return 0;
+    }
+
+    size_t line_count = 0;
+    // Минимально безопасный размер буфера для строки:
+    // Linux/macOS: 19 байт
+    // Windows: 20 байт
+    // Берем наибольший - 20 и ближайшую большУю степень двойки (удобно для
+    // выравнивания) Итого: 32 байт
+    char buffer[32];
+    while(fgets(buffer, sizeof(buffer), file))
+    {
+        line_count++;
+    }
+
+    fclose(file);
+    return line_count;
+}
+
 /*----------------------------------------------------------------------------*/
 /*                            STATISTICS FUNCTIONS                            */
 /*----------------------------------------------------------------------------*/

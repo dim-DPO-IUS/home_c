@@ -1,7 +1,10 @@
 # Исходные файлы
 SRCS = main.c temp_api.c
 HEADERS = temp_api.h
-
+# Имя исполняемого файла
+TARGET = temp_app
+# ===============
+# 
 # Компилятор и флаги
 CC = gcc
 # Флаги компиляции:
@@ -10,9 +13,6 @@ CFLAGS += -Wno-unused-variable
 CFLAGS += -ggdb3 -Og
 # Флаги линковки: отладочная информация
 LDFLAGS = -ggdb3
-
-# Имя исполняемого файла
-TARGET = temp_app
 
 # Автоматическое определение объектных файлов
 OBJS = $(SRCS:.c=.o) 

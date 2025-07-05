@@ -5,6 +5,17 @@
 /*----------------------------------------------------------------------------*/
 
 /**
+ * @brief Проверяет, является ли год високосным
+ *
+ * @param year
+ * @return int
+ */
+static inline int is_leap_year(uint16_t year)
+{
+    return (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+}
+
+/**
  * @brief Проверяет, является ли символ цифрой.
  *
  * Функция проверяет, находится ли переданный символ в диапазоне от '0' до '9'.
@@ -16,31 +27,12 @@
 static int is_digit(char c) { return c >= '0' && c <= '9'; }
 
 /**
- * @brief Разбирает целое число из строки.
+ * @brief Парсит целое число из строки, без обработки пробелов.
+ * @brief ВНИМАНИЕ! Ожидает число без пробелов
  *
- * Функция парсит целое число (со знаком) из переданной строки, начиная с
- * текущей позиции. Строка должна содержать валидное число (хотя бы одну цифру
- * после знака). Указатель на строку продвигается до первого символа после
- * разобранного числа.
- *
- * @param[in,out] str Указатель на указатель строки для парсинга (позиция
- * обновляется)
- * @param[out] number Указатель, куда записывается разобранное число
- * @return int 1 - если число успешно разобрано, 0 - если число отсутствует
- *
- * @note Поддерживает числа со знаком '+' или '-'
- * @note Прекращает парсинг при первом нецифровом символе
- * @note Не проверяет на переполнение типа int
- *
- * Пример использования:
- * @code
- * const char* text = "-123abc";
- * int num;
- * if (parse_number(&text, &num)) {
- *     printf("Число: %d\n", num);  // -123
- *     printf("Остаток: %s\n", text);  // "abc"
- * }
- * @endcode
+ * @param str
+ * @param number
+ * @return int
  */
 static int parse_number(const char** str, int* number)
 {
@@ -59,22 +51,21 @@ static int parse_number(const char** str, int* number)
     }
 
     // Проверка, что символ - цифра
-    if (!is_digit(**str))
-    {
-        return 0;
-    }
+    if (!is_digit(**str)) return 0;
 
     // Парсинг числа с проверкой переполнения
     while (is_digit(**str))
     {
         int digit = **str - '0';
 
-        // Проверка на переполнение перед умножением и сложением
+        // Проверка на переполнение для положительных чисел
         if (*number > INT_MAX / 10
             || (*number == INT_MAX / 10 && digit > INT_MAX % 10))
         {
             return 0; // Переполнение в положительную сторону
         }
+
+        // Проверка на переполнение для отрицательных чисел
         if (*number < INT_MIN / 10
             || (*number == INT_MIN / 10 && -digit < INT_MIN % 10))
         {
@@ -86,6 +77,34 @@ static int parse_number(const char** str, int* number)
     }
 
     return 1;
+}
+
+/**
+ * @brief Парсит одно поле из строки csv-файла с проверкой диапазона
+ *
+ * @param p
+ * @param min_val
+ * @param max_val
+ * @param delimiter
+ * @return int
+ */
+static int parse_csv_field(const char** p, int min_val, int max_val, char delimiter)
+{
+    int val;
+    // Пропускаем пробелы перед числом
+    while (**p == ' ') (*p)++;
+    // Парсим число
+    if (!parse_number(p, &val)) return -1;
+    // Проверка диапазона
+    if (val < min_val || val > max_val) return -1;
+    // Пропускаем пробелы после числа
+    while (**p == ' ') (*p)++;
+    // Проверка разделителя (если требуется) Ожидался разделитель
+    if (**p != delimiter && delimiter != '\0') return -1;
+    // Пропускаем разделитель (если не конец строки)
+    if (delimiter != '\0') (*p)++;
+
+    return val;
 }
 
 /**
@@ -141,62 +160,46 @@ static int is_valid_line(const char* line, char delimiter, sensor* output)
 {
     const char* p = line;
 
-    //**** Макрос для парсинга одного поля с проверкой диапазона ***//
-#define PARSE_FIELD(field, min_val, max_val, type)                                   \
-    do {                                                                             \
-        int _tmp;                                                                    \
-        if (!parse_number(&p, &_tmp)) return 0;                                      \
-        if (_tmp < (min_val) || _tmp > (max_val)) return 0;                          \
-        output->field = (type)_tmp;                                                  \
-        while (*p == ' ') p++;                                                       \
-        if (*p++ != delimiter) return 0;                                             \
-    } while (0)
-    // *************************************************************//
+    // Парсим все поля по очереди
+    int year = parse_csv_field(&p, 2000, 2100, delimiter);
+    int month = parse_csv_field(&p, 1, 12, delimiter);
+    int day = parse_csv_field(&p, 1, 31, delimiter);
+    int hour = parse_csv_field(&p, 0, 23, delimiter);
+    int minute = parse_csv_field(&p, 0, 59, delimiter);
+    // Температура - последнее поле, без разделителя после
+    int temperature = parse_csv_field(&p, -60, 60, '\0');
 
-    // Пропускаем начальные пробелы
-    while (*p == ' ') p++;
-
-    // Парсим год, месяц, день, час, минуты
-    PARSE_FIELD(year, 2000, 2100, uint16_t);
-    PARSE_FIELD(month, 1, 12, uint8_t);
-    PARSE_FIELD(day, 1, 31, uint8_t);
-    PARSE_FIELD(hour, 0, 23, uint8_t);
-    PARSE_FIELD(minute, 0, 59, uint8_t);
-
-    // Температура (обрабатываем отдельно)
-    // Парсим температуру (без проверки разделителя после неё)
-    int tmp;
-    while (*p == ' ') p++;
-    if (!parse_number(&p, &tmp))
+    // Проверка успешности парсинга всех полей
+    if (year == -1 || month == -1 || day == -1 || hour == -1 || minute == -1
+        || temperature == -1)
     {
         return 0;
     }
-    if (tmp < -60 || tmp > 60)
-    {
-        return 0;
-    }
-    output->temperature = (int8_t)tmp;
+
+    // Записываем значения в структуру
+    output->year = (uint16_t)year;
+    output->month = (uint8_t)month;
+    output->day = (uint8_t)day;
+    output->hour = (uint8_t)hour;
+    output->minute = (uint8_t)minute;
+    output->temperature = (int8_t)temperature;
 
     // Проверка конца строки
     while (*p == ' ') p++;
-    if (*p != '\0' && *p != '\n' && *p != '\r')
-    {
-        return 0;
-    }
+    if (*p != '\0' && *p != '\n' && *p != '\r') return 0;
 
-    // Проверка дней в месяце
-    if ((output->month == 4 || output->month == 6 || output->month == 9
-            || output->month == 11)
+    // Проверка дней в месяце + високосный год
+    if (output->month == 2)
+    {
+        int max_day = is_leap_year(output->year) ? 29 : 28;
+        if (output->day > max_day) return 0;
+    }
+    else if ((output->month == 4 || output->month == 6 || output->month == 9
+                 || output->month == 11)
         && output->day > 30)
     {
         return 0;
     }
-    if (output->month == 2 && output->day > 28)
-    {
-        return 0;
-    }
-
-#undef PARSE_FIELD // Убираем макрос после использования
 
     return 1;
 }
@@ -206,7 +209,7 @@ static int is_valid_line(const char* line, char delimiter, sensor* output)
  *
 
  */
-void init_temp_stats(temp_stats* stats, uint16_t year)
+static void init_temp_stats(temp_stats* stats, uint16_t year)
 {
     stats->year = year;
 
@@ -752,6 +755,13 @@ void sort_stack(node** top, load_stats load_info, char td)
  */
 int parse_arguments(int argc, char* argv[], cmd_args* args)
 {
+    // Вызов без аргументов
+    if (argc == 1)
+    {
+        printf(HELP_MSG, argv[0]);
+        return 1;
+    }
+
     // Обнуляем структуру
     memset(args, 0, sizeof(cmd_args));
     // Начинаем с 1, так как argv[0] - имя программы
@@ -783,10 +793,7 @@ int parse_arguments(int argc, char* argv[], cmd_args* args)
         case 'm': sscanf(argv[i + 1], "%hhu", &args->month); break;
         case 'y': sscanf(argv[i + 1], "%hu", &args->year); break;
         case 'p': sscanf(argv[i + 1], "%hhu", &args->printdb); break;
-        case 's':
-            sscanf(argv[i + 1], "%c", &args->sort);
-            // args->sort = argv[i + 1];
-            break;
+        case 's': sscanf(argv[i + 1], "%c", &args->sort); break;
         case 'h': printf(HELP_MSG, argv[0]); return 1;
         default:
             fprintf(stderr, "Ошибка: неизвестная опция '-%c'\n", arg[1]);

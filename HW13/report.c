@@ -1,13 +1,18 @@
 #include "temp_function.h"
 
+#define DEBUG_MODE 0
+
 int main(int argc, char* argv[])
 {
     node* top = NULL;
+
+#if DEBUG_MODE
     // ======================================================================
-    // load_stats load_info;
-    // load_from_csv("temperature_big.csv", &top, ';', &load_info);
-    // print_load_stats(&load_info);
+    load_stats load_info;
+    load_from_csv("temperature_big.csv", &top, ';', &load_info);
+    print_load_stats(&load_info);
     // ======================================================================
+#else
     // -------------- Аргументы командной строки ---------//
     cmd_args args;
     int result = parse_arguments(argc, argv, &args);
@@ -48,6 +53,8 @@ int main(int argc, char* argv[])
         print_monthly_stats(&stats, args.month);
         printf("\n");
     }
+
+#endif // DEBUG_MODE
 
     // -------------- Очистка стека (если нужно) --------//
     free_stack(&top);

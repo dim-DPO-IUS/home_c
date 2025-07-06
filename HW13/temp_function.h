@@ -112,8 +112,10 @@ static const char START_MSG[] = "--------------------------------------\n"
 
 /// Help message for command line interface
 static const char HELP_MSG[]
-    // = "Использование: %s [опции]\n"
-    = "Temperature Statistics Application. Please enter a key:\n"
+    = "--------------------------------------\n"
+      "Temperature Data Analysis Tool. \n"
+      "--------------------------------------\n"
+      "Please enter a key:\n"
       " -h            for help\n"
       " -f <file>     file_name for load this file.\n"
       " -m <month>    statistic for <month> month\n"

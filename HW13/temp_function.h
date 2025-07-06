@@ -100,14 +100,14 @@ typedef struct load_stats {
 /*----------------------------------------------------------------------------*/
 /// Start message for command line interface
 static const char START_MSG[] = "--------------------------------------\n"
-                                "Программа анализа температурных данных\n"
+                                "Temperature Data Analysis Tool\n"
                                 "--------------------------------------\n"
-                                "Позволяет:\n"
-                                "- Загружать данные из CSV-файла\n"
-                                "- Анализировать температурные показатели\n"
-                                "- Выводить статистику за указанный период\n"
-                                "- Сортировать данные по дате или температуре\n"
-                                "Для получения инструкций используйте ключ -h\n"
+                                "Features:\n"
+                                "- Load data from CSV files\n"
+                                "- Analyze temperature metrics\n"
+                                "- Display statistics for specified periods\n"
+                                "- Sort data by date or temperature\n"
+                                "For instructions, use the -h option\n"
                                 "\n";
 
 /// Help message for command line interface

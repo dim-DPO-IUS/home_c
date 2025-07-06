@@ -13,14 +13,16 @@
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Структура для аргументов командной строки
+ * @brief Параметры командной строки
+ * 
+ * Содержит разобранные аргументы командной строки для работы программы:
  */
 typedef struct cmd_args {
-    const char* filename; ///< Имя входного файла
-    uint8_t month; ///< Месяц для статистики (0 - не задан)
-    uint16_t year; ///< Год для статистики (0 - не задан)
-    uint8_t printdb; ///< Флаг вывода базы данных
-    char sort;
+    const char* filename; ///< Имя входного CSV-файла с данными
+    uint8_t month; ///< Месяц для анализа (1-12, 0 - все месяцы)
+    uint16_t year; ///< Год для анализа (0 - не задан)
+    uint8_t printdb; ///< Флаг вывода базы данных (0/1)
+    char sort; ///< Критерий сортировки ('d'-дата, 't'-температура)
 } cmd_args;
 
 /**
@@ -61,25 +63,31 @@ typedef struct node {
 } node;
 
 /**
- * @brief Стурктура для записи статистики температуры
+ * @brief Статистика температурных данных
  *
+ * Содержит агрегированные данные по температуре:
+ * - Ежемесячная статистика (массив из 12 элементов)
+ * - Годовая статистика (суммарные значения)
  */
 typedef struct temp_stats {
-    uint16_t year;
+    uint16_t year; ///< Год наблюдений
     struct {
         float avg_temp; ///< Средняя температура
         int8_t min_temp; ///< Минимальная температура
         int8_t max_temp; ///< Максимальная температура
         int32_t total_temp; ///< Сумма температур для точного расчета
         int count; ///< Количество измерений
-    } monthly[12], yearly;
+    } monthly[12], ///< Месячная статистика (0-январь..11-декабрь)
+        yearly; ///< Годовая статистика
 } temp_stats;
 
 /**
- * Статистика загрузки данных из CSV-файла
+ * @brief Статистика загрузки данных из файла
+ *
+ * Содержит информацию о результате загрузки и парсинга данных:
  */
 typedef struct load_stats {
-    char filename[256];
+    char filename[256]; ///< Имя файла-источника данных
     size_t total_lines; ///< Всего строк в файле
     size_t empty_lines; ///< Пустых строк или комментариев
     size_t valid_records; ///< Успешно загруженных записей
@@ -138,16 +146,17 @@ sensor pop(node** top);
 sensor peek(node* top);
 
 /**
- * @brief
- *
+ * @brief Освобождает память стека
+ * @param top Указатель на вершину стека
+ * @return Нет возвращаемого значения
  */
 void free_stack(node** top);
 
 /**
- * @brief Выводит содержимое стека в консоль
+ * @brief Выводит содержимое стека
  * @param top Указатель на вершину стека
- * @details Формат вывода для каждого элемента:
- *          "ГГГГ-ММ-ДД ЧЧ:ММ T°C". Для пустого стека выводит "Stack is empty."
+ * @param num Количество элементов для вывода
+ * @return void
  */
 void print_stack(const node* top, int num);
 
@@ -165,9 +174,9 @@ size_t load_from_csv(
     const char* filename, node** top, char delimiter, load_stats* load_info);
 
 /**
- * @brief
- *
- * @param load_info
+ * @brief Выводит статистику загрузки данных
+ * @param load_info Указатель на структуру со статистикой
+ * @return void
  */
 void print_load_stats(const load_stats* load_info);
 
@@ -176,23 +185,24 @@ void print_load_stats(const load_stats* load_info);
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief
- *
- * @param top
+ * @brief Вычисляет статистику по данным в стеке
+ * @param top Указатель на вершину стека с данными
+ * @return Структура temp_stats с рассчитанной статистикой
  */
 temp_stats calculate_stats(node* top);
 
 /**
- * @brief Вывод месячной статистики
- *
- * @param stats
+ * @brief Выводит месячную статистику температур
+ * @param stats Указатель на структуру с данными статистики
+ * @param month Номер месяца (1-12) или 0 для вывода всех месяцев
+ * @return void
  */
 void print_monthly_stats(const temp_stats* stats, uint8_t month);
 
 /**
- * @brief Вывод годовой статистики
- *
- * @param stats
+ * @brief Выводит годовую статистику температур
+ * @param stats Указатель на структуру с данными статистики
+ * @return void
  */
 void print_yearly_stats(const temp_stats* stats);
 
@@ -201,10 +211,11 @@ void print_yearly_stats(const temp_stats* stats);
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief
- *
- * @param top
- * @param td 0: сортируем по температуре, 1: сортируем по дате
+ * @brief Сортирует стек температурных данных
+ * @param top Указатель на вершину стека
+ * @param load_info Статистика загрузки данных
+ * @param td Критерий сортировки ('d' - дата, 't' - температура)
+ * @return void
  */
 void sort_stack(node** top, load_stats load_info, char td);
 

@@ -930,7 +930,8 @@ int parse_arguments(int argc, char* argv[], cmd_args* args)
     // Вызов без аргументов
     if (argc == 1)
     {
-        printf(HELP_MSG, argv[0]);
+        // printf(HELP_MSG, argv[0]);
+        printf(START_MSG);
         return 1;
     }
 
@@ -966,7 +967,8 @@ int parse_arguments(int argc, char* argv[], cmd_args* args)
         case 'y': sscanf(argv[i + 1], "%hu", &args->year); break;
         case 'p': sscanf(argv[i + 1], "%hhu", &args->printdb); break;
         case 's': sscanf(argv[i + 1], "%c", &args->sort); break;
-        case 'h': printf(HELP_MSG, argv[0]); return 1;
+        // case 'h': printf(HELP_MSG, argv[0]); return 1;
+        case 'h': printf(HELP_MSG); return 1;
         default:
             fprintf(stderr, "Ошибка: неизвестная опция '-%c'\n", arg[1]);
             return -1;

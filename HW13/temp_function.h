@@ -107,7 +107,10 @@ static const char START_MSG[] = "--------------------------------------\n"
                                 "- Temperature analysis\n"
                                 "- Custom period statistics\n"
                                 // "- Sort data by date or temperature\n"
-                                "For instructions, use the -h option\n"
+                                "For instructions, use the -h option\n\n"
+                                "Usage: program -f <filename.csv> [options]\n"
+                                "Options:\n"
+                                "-m <month>  Show stats for specific month (1-12)\n"
                                 "\n";
 
 /// Help message for command line interface

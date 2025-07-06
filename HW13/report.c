@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
         {
             if (!args.month && !args.printdb && !args.sort && !args.year)
             {
-                print_load_stats(&load_info);
-                temp_stats stats = calculate_stats(top);
+                print_load_stats(&load_info); // Статистика загрузки
+                temp_stats stats = calculate_stats(top); // Счет статистики температур
                 print_monthly_stats(&stats, 0); // Все месяцы
                 print_yearly_stats(&stats); // Годовая статистика
             }

@@ -103,23 +103,22 @@ static const char START_MSG[] = "--------------------------------------\n"
                                 "Temperature Data Analysis Tool\n"
                                 "--------------------------------------\n"
                                 "Features:\n"
-                                "- Load data from CSV files\n"
-                                "- Analyze temperature metrics\n"
-                                "- Display statistics for specified periods\n"
-                                "- Sort data by date or temperature\n"
+                                "- CSV data import\n"
+                                "- Temperature analysis\n"
+                                "- Custom period statistics\n"
+                                // "- Sort data by date or temperature\n"
                                 "For instructions, use the -h option\n"
                                 "\n";
 
 /// Help message for command line interface
-static const char HELP_MSG[]
-    = "--------------------------------------\n"
-      "Temperature Data Analysis Tool. \n"
-      "--------------------------------------\n"
-      "Please enter a key:\n"
-      " -h            for help\n"
-      " -f <file>     file_name for load this file.\n"
-      " -m <month>    statistic for <month> month\n"
-      "\n";
+static const char HELP_MSG[] = "--------------------------------------\n"
+                               "Temperature Data Analysis Tool. \n"
+                               "--------------------------------------\n"
+                               "Please enter a key:\n"
+                               " -h            for help\n"
+                               " -f <file>     file_name for load this file.\n"
+                               " -m <month>    statistic for <month> month\n"
+                               "\n";
 // " -y <year>     Статистика по году\n"
 // " -s <sort>     Сортировка (t - температура, d - дата+время)\n";
 // " -p <print>    Печать первых N записей\n"

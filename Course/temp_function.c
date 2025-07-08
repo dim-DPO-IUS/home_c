@@ -199,7 +199,7 @@ static int is_valid_line(const char* line, char delimiter, sensor* output)
     int hour = parse_csv_field(&p, 0, 23, delimiter);
     int minute = parse_csv_field(&p, 0, 59, delimiter);
     // Температура - последнее поле, без разделителя после
-    int temperature = parse_csv_field(&p, -60, 60, '\0');
+    int temperature = parse_csv_field(&p, -99, 99, '\0');
 
     // Проверка успешности парсинга всех полей
     if (year == -1 || month == -1 || day == -1 || hour == -1 || minute == -1

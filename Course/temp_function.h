@@ -1,0 +1,267 @@
+#ifndef TEMP_FUNCTION_H
+#define TEMP_FUNCTION_H
+//
+#include <limits.h> // Для INT_MAX и INT_MIN
+#include <stdbool.h> // true, false
+#include <stdint.h> // inttypes
+#include <stdio.h>
+#include <stdlib.h> // free, malloc ...
+#include <string.h> // memset
+
+/*----------------------------------------------------------------------------*/
+/*                              CONSTANTS                                     */
+/*----------------------------------------------------------------------------*/
+
+/// Имя лог-файла для записи логов загрузки из файла данных
+#define LOG_FILENAME "load_errors.log"
+
+/// Start message for command line interface
+static const char START_MSG[]
+    = "--------------------------------------\n"
+      "Temperature Data Analysis Tool\n"
+      "--------------------------------------\n"
+      "Features:\n"
+      "- CSV data import\n"
+      "- Temperature analysis\n"
+      "- Custom period statistics\n"
+      "- Automatic error logging to 'load_errors.log'\n"
+      "For instructions, use the -h option\n"
+
+      "Usage: program -f <filename.csv> [options]\n"
+      "Options:\n"
+      "-f <file>   Specify input CSV file (required)\n"
+      "-m <month>  Show stats for specific month (1-12)\n"
+      "-h          Show this help message\n"
+
+      "Error Handling:\n"
+      "- The program automatically creates/overwrites 'load_errors.log' on each run\n"
+      "- All data validation errors are logged there\n"
+      "- Empty lines and invalid values are skipped but recorded\n"
+      "\n";
+
+/// Help message for command line interface
+static const char HELP_MSG[] = "--------------------------------------\n"
+                               "Temperature Data Analysis Tool. \n"
+                               "--------------------------------------\n"
+                               "Please enter a key:\n"
+                               " -h            for help\n"
+                               " -f <file>     file_name for load this file.\n"
+                               " -m <month>    statistic for <month> month\n"
+                               "\n";
+// " -y <year>     Статистика по году\n"
+// " -s <sort>     Сортировка (t - температура, d - дата+время)\n";
+// " -p <print>    Печать первых N записей\n"
+
+/*----------------------------------------------------------------------------*/
+/*                            ОПРЕДЕЛЕНИЯ ТИПОВ                               */
+/*----------------------------------------------------------------------------*/
+
+/**
+ * @brief Параметры командной строки
+ *
+ * Содержит разобранные аргументы командной строки для работы программы:
+ */
+typedef struct cmd_args {
+    const char* filename; ///< Имя входного CSV-файла с данными
+    uint8_t month; ///< Месяц для анализа (1-12, 0 - все месяцы)
+    uint16_t year; ///< Год для анализа (0 - не задан)
+    uint8_t printdb; ///< Флаг вывода базы данных (0/1)
+    char sort; ///< Критерий сортировки ('d'-дата, 't'-температура)
+} cmd_args;
+
+/**
+ * @brief Структура, представляющая данные датчика температуры.
+ *
+ * Используется для хранения метки времени и температуры.
+ * Поддерживает только годы с 2000 по 2100, температуру в диапазоне -128..+127
+ * °C.
+ *
+ * @note Для февраля високосные годы не проверяются автоматически.
+ */
+#pragma pack(push, 1) // Отключить выравнивание
+typedef struct sensor {
+    uint16_t year; ///< Год (2000-2100)
+    uint8_t month : 4; ///< Месяц (1-12)
+    uint8_t day : 5; ///< День (1-31)
+    uint8_t hour : 5; ///< Часы (0-23)
+    uint8_t minute : 6; ///< Минуты (0-59)
+    int8_t temperature; ///< Температура (°C)
+} sensor;
+#pragma pack(pop) // Вернуть выравнивание
+
+/**
+ * @brief Узел связного списка, содержащий данные датчика.
+ *
+ * Структура представляет собой узел односвязного списка, который хранит:
+ * - Данные датчика (тип sensor)
+ * - Указатель на следующий узел в списке
+ *
+ * @typedef list_node
+ *
+ * @var list_node::data
+ * Данные датчика, хранящиеся в узле
+ * @var list_node::next
+ * Указатель на следующий узел списка. Если это последний узел, равен NULL.
+ */
+typedef struct node {
+    sensor data; // Данные
+    struct node* next; // Указатель на следующий элемент
+} node;
+
+/**
+ * @brief Статистика температурных данных
+ *
+ * Содержит агрегированные данные по температуре:
+ * - Ежемесячная статистика (массив из 12 элементов)
+ * - Годовая статистика (суммарные значения)
+ */
+typedef struct temp_stats {
+    uint16_t year; ///< Год наблюдений
+    struct {
+        float avg_temp; ///< Средняя температура
+        int8_t min_temp; ///< Минимальная температура
+        int8_t max_temp; ///< Максимальная температура
+        int32_t total_temp; ///< Сумма температур для точного расчета
+        int count; ///< Количество измерений
+    } monthly[12], ///< Месячная статистика (0-январь..11-декабрь)
+        yearly; ///< Годовая статистика
+} temp_stats;
+
+/**
+ * @brief Статистика загрузки данных из файла
+ *
+ * Содержит информацию о результате загрузки и парсинга данных:
+ */
+typedef struct load_stats {
+    char filename[256]; ///< Имя файла-источника данных
+    size_t total_lines; ///< Всего строк в файле
+    size_t empty_lines; ///< Пустых строк или комментариев
+    size_t valid_records; ///< Успешно загруженных записей
+    size_t invalid_format; ///< Строк с неверным форматом
+    size_t invalid_values; ///< Строк с некорректными значениями
+    char logfile[256]; ///< Имя файла для записи ошибок
+} load_stats;
+
+/*----------------------------------------------------------------------------*/
+/*                            СТЭК                                            */
+/*----------------------------------------------------------------------------*/
+
+/**
+ * @brief Проверяет, пуст ли стек
+ * @param top Указатель на вершину стека
+ * @return true если стек пуст, false в противном случае
+ */
+bool is_empty(node* top);
+
+/**
+ * @brief Добавляет элемент в вершину стека
+ * @param[in,out] top Указатель на указатель вершины стека
+ * @param[in] data Данные датчика для добавления
+ * @note Выделяет память под новый узел. При ошибке выводит "Memory error!"
+ */
+void push(node** top, sensor value);
+
+/**
+ * @brief Удаляет и возвращает элемент из вершины стека
+ * @param[in,out] top Указатель на указатель вершины стека
+ * @return Данные из удаленного узла. При пустом стеке возвращает структуру
+ *         с нулевыми значениями и выводит "Stack underflow!"
+ */
+sensor pop(node** top);
+
+/**
+ * @brief Возвращает данные из вершины стека без удаления
+ * @param top Указатель на вершину стека
+ * @return Данные из вершины стека. При пустом стеке возвращает структуру
+ *         с нулевыми значениями и выводит "Stack is empty!"
+ */
+sensor peek(node* top);
+
+/**
+ * @brief Освобождает память стека
+ * @param top Указатель на вершину стека
+ * @return Нет возвращаемого значения
+ */
+void free_stack(node** top);
+
+/**
+ * @brief Выводит содержимое стека
+ * @param top Указатель на вершину стека
+ * @param num Количество элементов для вывода
+ * @return void
+ */
+void print_stack(const node* top, int num);
+
+/*----------------------------------------------------------------------------*/
+/*                                ВВОД ДАННЫХ                                 */
+/*----------------------------------------------------------------------------*/
+
+/**
+ * @brief Читает данные датчиков из CSV-файла и помещает их в стек
+ * @param filename Имя CSV-файла для чтения
+ * @param top Указатель на указатель вершины стека
+ * @return true если файл успешно прочитан, false при ошибке
+ */
+size_t load_from_csv(
+    const char* filename, node** top, char delimiter, load_stats* load_info);
+
+/**
+ * @brief Выводит статистику загрузки данных
+ * @param load_info Указатель на структуру со статистикой
+ * @return void
+ */
+void print_load_stats(const load_stats* load_info);
+
+/*----------------------------------------------------------------------------*/
+/*                            СТАТИСТИКА                                      */
+/*----------------------------------------------------------------------------*/
+
+/**
+ * @brief Вычисляет статистику по данным в стеке
+ * @param top Указатель на вершину стека с данными
+ * @return Структура temp_stats с рассчитанной статистикой
+ */
+temp_stats calculate_stats(node* top);
+
+/**
+ * @brief Выводит месячную статистику температур
+ * @param stats Указатель на структуру с данными статистики
+ * @param month Номер месяца (1-12) или 0 для вывода всех месяцев
+ * @return void
+ */
+void print_monthly_stats(const temp_stats* stats, uint8_t month);
+
+/**
+ * @brief Выводит годовую статистику температур
+ * @param stats Указатель на структуру с данными статистики
+ * @return void
+ */
+void print_yearly_stats(const temp_stats* stats);
+
+/*----------------------------------------------------------------------------*/
+/*                                  СОРТИРОВКА                                */
+/*----------------------------------------------------------------------------*/
+
+/**
+ * @brief Сортирует стек температурных данных
+ * @param top Указатель на вершину стека
+ * @param load_info Статистика загрузки данных
+ * @param td Критерий сортировки ('d' - дата, 't' - температура)
+ * @return void
+ */
+void sort_stack(node** top, load_stats load_info, char td);
+
+/*----------------------------------------------------------------------------*/
+/*                                  КОМАНДНАЯ СТРОКА                          */
+/*----------------------------------------------------------------------------*/
+
+/**
+ * @brief Парсинг аргументов командной строки
+ * @param argc Количество аргументов
+ * @param argv Массив аргументов
+ * @param args Структура для результатов
+ * @return 0 - успешно, 1 - вывод справки, -1 - ошибка
+ */
+int parse_arguments(int argc, char* argv[], cmd_args* args);
+
+#endif // TEMP_FUNCTION_H

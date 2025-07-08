@@ -4,7 +4,8 @@
 
 int main(int argc, char* argv[])
 {
-    node* top = NULL;
+    node* head = NULL;
+    node* tail = NULL;
 
 #if DEBUG_MODE
     // ======================================================================
@@ -29,12 +30,13 @@ int main(int argc, char* argv[])
     load_stats load_info;
     if (args.filename) // имя файла
     {
-        if (load_from_csv(args.filename, &top, ';', &load_info))
+        if (load_from_csv(args.filename, &head, &tail, ';', &load_info))
         {
             if (!args.month && !args.printdb && !args.sort)
             {
                 print_load_stats(&load_info); // Статистика загрузки
-                temp_stats stats = calculate_stats(top); // Счет статистики температур
+                temp_stats stats
+                    = calculate_stats(head); // Счет статистики температур
                 print_monthly_stats(&stats, 0); // Все месяцы
                 print_yearly_stats(&stats); // Годовая статистика
             }
@@ -48,7 +50,7 @@ int main(int argc, char* argv[])
     // -------------- Статистика за месяц ---------------//
     if (args.month)
     {
-        temp_stats stats = calculate_stats(top);
+        temp_stats stats = calculate_stats(head);
         print_monthly_stats(&stats, args.month);
         printf("\n");
     }
@@ -56,18 +58,17 @@ int main(int argc, char* argv[])
     // -------------- Сортировка и печать ---------------//
     if (args.sort == 'd' || args.sort == 't')
     {
-        sort_stack(&top, load_info, args.sort);
+        sort_list(&head, &tail, args.sort);
         if (args.printdb)
         {
-            print_stack(
-                top, args.printdb); // Вывод отсортированных данных, если нужно
+            print_list(tail, args.printdb, false); // Печать с начала
         }
     }
 
 #endif // DEBUG_MODE
 
     // -------------- Очистка стека (если нужно) --------//
-    free_stack(&top);
+    free_list(&head, &tail);
 
     return 0;
 }

@@ -373,14 +373,11 @@ bool is_empty(node* top) { return top == NULL; }
  *          и завершает работу без добавления элемента.
  * @see list_node, sensor, pop()
  */
-void push(node** top, sensor data)
+void push(node** head, node** tail, sensor data)
 {
     // 1. Создаём новый узел.
     // Для стандартов до С99 и С++
     node* new_node = (node*)malloc(sizeof(node)); // Выделяем память
-    // Для стандартов С99 и позже (C++ - нельзя) - автоматическое приведение
-    // void* node* new_node = malloc(sizeof(node)); // Выделяем
-    // память
 
     if (!new_node)
     {
@@ -389,10 +386,23 @@ void push(node** top, sensor data)
     }
     // 2. Записываем в него данные.
     new_node->data = data; // Записываем значение
-    // 3. Делаем его next равным текущей вершине (top).
-    new_node->next = *top; // Новый узел указывает на старую вершину (top)
+    // 3. Делаем его next равным текущей вершине (head).
+    new_node->next = *head; // Новый узел указывает на старую вершину (head)
+    //
+    new_node->prev = NULL;
+
     // 4. Перемещаем top на новый узел.
-    *top = new_node; // Теперь вершина — новый узел
+    if (*head != NULL)
+    {
+        (*head)->prev = new_node;
+    }
+
+    *head = new_node; // Теперь вершина — новый узел
+
+    if (*tail == NULL)
+    {
+        *tail = new_node;
+    }
 }
 
 /**
@@ -413,22 +423,28 @@ void push(node** top, sensor data)
  * @note Функция освобождает память удаляемого узла с помощью free().
  * @see list_node, sensor, push(), isEmpty()
  */
-sensor pop(node** top)
+sensor pop(node** head, node** tail)
 {
     sensor dummy = { 0 }; // Значение по умолчанию если стек пуст
     // 1. Проверяем, не пуст ли стек.
-    if (is_empty(*top))
+    if (*head == NULL)
     {
         printf("Stack underflow!\n");
-        // Возвращаем "пустую" структуру
-        return dummy;
+        return dummy; // Возвращаем "пустую" структуру
     }
-    // 2. Запоминаем текущую вершину (temp = top).
-    node* temp = *top;
+    // 2. Запоминаем текущую вершину (temp = head).
+    node* temp = *head;
     sensor popped = temp->data;
     // 3. Перемещаем top на следующий узел (top = top->next).
-    // *top = (*top)->next;
-    *top = temp->next;
+    *head = (*head)->next;
+    if (*head != NULL)
+    {
+        (*head)->prev = NULL;
+    }
+    else
+    {
+        *tail = NULL;
+    }
     // 4. Возвращаем значение из temp и освобождаем память.
     free(temp);
     return popped;
@@ -482,12 +498,17 @@ sensor peek(node* top)
  * free_stack(&stack); // полная очистка стека
  * @endcode
  */
-void free_stack(node** top)
+void free_list(node** head, node** tail)
 {
-    while (!is_empty(*top))
+    node* current = *head;
+    while (current != NULL)
     {
-        pop(top);
+        node* next = current->next;
+        free(current);
+        current = next;
     }
+    *head = NULL;
+    *tail = NULL;
 }
 
 /**
@@ -505,23 +526,22 @@ void free_stack(node** top)
  * @warning Если передан NULL, выводит сообщение о пустом стеке.
  * @see list_node, sensor, isEmpty()
  */
-void print_stack(const node* top, int num)
+void print_list(const node* current, int num, bool reverse)
 {
-    if (top == NULL)
+    if (current == NULL)
     {
-        puts("Stack is empty.\n");
+        puts("List is empty.\n");
         return;
     }
 
-    const node* current = top;
-    num = num ? num : -1;
     int cnt = 0;
-    while (current != NULL && cnt != num)
+    while (current != NULL && (num <= 0 || cnt < num))
     {
         printf("%04d-%02d-%02d %02d:%02d %3d°C\n", current->data.year,
             current->data.month, current->data.day, current->data.hour,
             current->data.minute, current->data.temperature);
-        current = current->next;
+
+        current = reverse ? current->prev : current->next;
         cnt++;
     }
 
@@ -566,8 +586,8 @@ void print_stack(const node* top, int num)
  * @endcode
  */
 
-size_t load_from_csv(
-    const char* filename, node** top, char delimiter, load_stats* load_info)
+size_t load_from_csv(const char* filename, node** head, node** tail, char delimiter,
+    load_stats* load_info)
 {
     // Инициализация статистики
     memset(load_info, 0, sizeof(load_stats));
@@ -629,7 +649,7 @@ size_t load_from_csv(
         }
 
         // Все проверки пройдены - записываем
-        push(top, data);
+        push(head, tail, data);
         load_info->valid_records++;
     }
 
@@ -910,31 +930,40 @@ void print_yearly_stats(const temp_stats* stats)
  *       но в отсортированном порядке (верхний элемент - первый в отсортированном
  * массиве)
  */
-void sort_stack(node** top, load_stats load_info, char td)
+void sort_list(node** head, node** tail, char td)
 {
-    int size = (int)load_info.valid_records;
+    if (*head == NULL || (*head)->next == NULL) return;
+
+    // Подсчёт элементов
+    int count = 0;
+    node* temp = *head;
+    while (temp != NULL)
+    {
+        count++;
+        temp = temp->next;
+    }
 
     // 1. Извлекаем все элементы в массив
-    sensor temp_arr[size];
-    int count = 0;
-
-    while (!is_empty(*top))
+    sensor* arr = (sensor*)malloc(count * sizeof(sensor));
+    temp = *head;
+    for (int i = 0; i < count; i++)
     {
-        temp_arr[count++] = pop(top);
+        arr[i] = temp->data;
+        temp = temp->next;
     }
 
     // 2. Сортируем массив
-    if (td == 'd')
-        qsort(temp_arr, count, sizeof(sensor), compare_by_date);
-    else if (td == 't')
-        qsort(temp_arr, count, sizeof(sensor), compare_by_temp);
+    qsort(arr, count, sizeof(sensor), td == 'd' ? compare_by_date : compare_by_temp);
+    // Очистка списка
+    free_list(head, tail);
 
-    // 3. Заполняем стек обратно (в обратном порядке, чтобы верхний элемент
-    // был минимальным)
+    // Заполнение отсортированными данными
     for (int i = count - 1; i >= 0; i--)
     {
-        push(top, temp_arr[i]);
+        push(head, tail, arr[i]);
     }
+
+    free(arr);
 }
 
 /*----------------------------------------------------------------------------*/

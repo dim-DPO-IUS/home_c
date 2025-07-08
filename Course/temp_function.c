@@ -986,7 +986,6 @@ int parse_arguments(int argc, char* argv[], cmd_args* args)
         {
         case 'f': args->filename = argv[i + 1]; break;
         case 'm': sscanf(argv[i + 1], "%hhu", &args->month); break;
-        case 'y': sscanf(argv[i + 1], "%hu", &args->year); break;
         case 'p': sscanf(argv[i + 1], "%hhu", &args->printdb); break;
         case 's': sscanf(argv[i + 1], "%c", &args->sort); break;
         case 'h': printf(HELP_MSG); return 1;

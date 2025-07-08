@@ -48,7 +48,7 @@ static const char HELP_MSG[] = "--------------------------------------\n"
                                " -f <file>     file_name for load this file.\n"
                                " -m <month>    statistic for <month> month\n"
                                "\n";
-// " -y <year>     Статистика по году\n"
+
 // " -s <sort>     Сортировка (t - температура, d - дата+время)\n";
 // " -p <print>    Печать первых N записей\n"
 
@@ -64,7 +64,6 @@ static const char HELP_MSG[] = "--------------------------------------\n"
 typedef struct cmd_args {
     const char* filename; ///< Имя входного CSV-файла с данными
     uint8_t month; ///< Месяц для анализа (1-12, 0 - все месяцы)
-    uint16_t year; ///< Год для анализа (0 - не задан)
     uint8_t printdb; ///< Флаг вывода базы данных (0/1)
     char sort; ///< Критерий сортировки ('d'-дата, 't'-температура)
 } cmd_args;

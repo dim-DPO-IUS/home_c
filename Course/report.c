@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     {
         if (load_from_csv(args.filename, &top, ';', &load_info))
         {
-            if (!args.month && !args.printdb && !args.sort && !args.year)
+            if (!args.month && !args.printdb && !args.sort)
             {
                 print_load_stats(&load_info); // Статистика загрузки
                 temp_stats stats = calculate_stats(top); // Счет статистики температур
@@ -51,6 +51,17 @@ int main(int argc, char* argv[])
         temp_stats stats = calculate_stats(top);
         print_monthly_stats(&stats, args.month);
         printf("\n");
+    }
+
+    // -------------- Сортировка и печать ---------------//
+    if (args.sort == 'd' || args.sort == 't')
+    {
+        sort_stack(&top, load_info, args.sort);
+        if (args.printdb)
+        {
+            print_stack(
+                top, args.printdb); // Вывод отсортированных данных, если нужно
+        }
     }
 
 #endif // DEBUG_MODE

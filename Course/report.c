@@ -64,7 +64,12 @@ int main(int argc, char* argv[])
     // --------------Печать (в прямом порядке)-----------//
     if (args.printdb)
     {
-        print_list(tail, args.printdb, true);
+        // если сортировка, то выведет по возрастанию - как надо
+        // если нет сортировки, то выведет файл в обратном порядке
+        print_list(head, -1, false);
+
+        // print_list(tail, args.printdb, true); // в прямом порядке
+        // print_list(tail, args.printdb, false); // в обратном порядке
     }
 
 #endif // DEBUG_MODE

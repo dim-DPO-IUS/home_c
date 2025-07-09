@@ -202,105 +202,34 @@ static int is_valid_line(const char* line, char delimiter, sensor* output)
 }
 
 /**
- * @brief Инициализирует структуру temp_stats начальными значениями
+ * @brief Инициализирует структуру temp_stats.
  *
- * Функция устанавливает начальные значения для всех полей структуры temp_stats:
- * - Устанавливает год наблюдений
- * - Инициализирует массив месячной статистики (12 месяцев)
- * - Инициализирует структуру годовой статистики
- *
- * @param[out] stats Указатель на структуру temp_stats для инициализации
- * @param[in] year Год наблюдений, который будет записан в статистику
- *
- * @note Для минимальных температур устанавливается INT8_MAX
- * @note Для максимальных температур устанавливается INT8_MIN
- * @note Все счетчики (count) и суммарные температуры (total_temp) обнуляются
- * @note Средние температуры (avg_temp) инициализируются нулями
- * @warning Для корректной работы последующих вычислений должна вызываться первой
- *          перед заполнением структуры статистики
- *
- * Пример использования:
- * @code
- * temp_stats stats;
- * init_temp_stats(&stats, 2023);
- * @endcode
+ * @param stats Указатель на структуру.
+ * @param year Год для статистики.
  */
 static void init_temp_stats(temp_stats* stats, uint16_t year)
 {
+    if (stats == NULL) return;
+
+    memset(stats, 0, sizeof(temp_stats));
     stats->year = year;
 
     // Инициализация месячной статистики
     for (int i = 0; i < 12; i++)
     {
-        stats->monthly[i].avg_temp = 0;
+        // stats->monthly[i].avg_temp = 0;
         stats->monthly[i].min_temp = INT8_MAX;
         stats->monthly[i].max_temp = INT8_MIN;
-        stats->monthly[i].total_temp = 0;
-        stats->monthly[i].count = 0;
+        // stats->monthly[i].total_temp = 0;
+        // stats->monthly[i].count = 0;
     }
 
     // Инициализация годовой статистики
-    stats->yearly.avg_temp = 0;
+    // stats->yearly.avg_temp = 0;
     stats->yearly.min_temp = INT8_MAX;
     stats->yearly.max_temp = INT8_MIN;
-    stats->yearly.total_temp = 0;
-    stats->yearly.count = 0;
-}
-
-/**
- * @brief Функция сравнения двух структур sensor по дате и времени
- *
- * Используется как компаратор для qsort() и других функций сортировки.
- * Сравнивает даты и время двух структур sensor в следующем порядке приоритетов:
- * 1. Год (year)
- * 2. Месяц (month)
- * 3. День (day)
- * 4. Час (hour)
- * 5. Минута (minute)
- *
- * @param[in] a Указатель на первую структуру sensor
- * @param[in] b Указатель на вторую структуру sensor
- * @return
- *      - Отрицательное число, если дата a раньше даты b
- *      - Ноль, если даты полностью совпадают
- *      - Положительное число, если дата a позже даты b
- *
- * @note Функция реализует лексикографическое сравнение дат (по возрастанию)
- * @note Для сортировки по убыванию можно инвертировать знак возвращаемого значения
- */
-static int compare_by_date(const void* a, const void* b)
-{
-    const sensor* s1 = (const sensor*)a;
-    const sensor* s2 = (const sensor*)b;
-
-    if (s1->year != s2->year) return s1->year - s2->year;
-    if (s1->month != s2->month) return s1->month - s2->month;
-    if (s1->day != s2->day) return s1->day - s2->day;
-    if (s1->hour != s2->hour) return s1->hour - s2->hour;
-    return s1->minute - s2->minute;
-}
-
-/**
- * @brief Функция сравнения двух структур sensor по температуре
- *
- * Используется как компаратор для qsort() и других функций сортировки.
- * Сравнивает значения температуры двух структур sensor.
- *
- * @param[in] a Указатель на первую структуру sensor
- * @param[in] b Указатель на вторую структуру sensor
- * @return
- *      - Отрицательное число, если температура a < температуры b
- *      - Ноль, если температуры равны
- *      - Положительное число, если температура a > температуры b
- *
- * @note Применяется для сортировки по возрастанию температуры.
- */
-static int compare_by_temp(const void* a, const void* b)
-{
-    sensor* s1 = (sensor*)a;
-    sensor* s2 = (sensor*)b;
-
-    return s1->temperature - s2->temperature;
+    // stats->yearly.total_temp = 0;
+    // stats->yearly.count = 0;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -597,65 +526,61 @@ void print_load_stats(const load_stats* load_info)
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Вычисляет статистику температурных данных из стека записей
+ * @brief Вычисляет статистику температурных данных.
  *
- * Функция анализирует данные в стеке и рассчитывает:
- * - Месячную статистику (для каждого месяца отдельно)
- * - Годовую статистику (агрегированные данные за весь год)
+ * @param head Указатель на голову списка с данными.
+ * @return temp_stats Структура с рассчитанной статистикой.
  *
- * @param[in] top Указатель на вершину стека с температурными данными
- * @return temp_stats Структура с рассчитанной статистикой
- *
- * @note Возвращает нулевую структуру, если стек пуст
- * @note Для каждого месяца рассчитывает:
- *       - количество измерений
- *       - суммарную температуру
- *       - среднюю температуру
- *       - минимальную температуру
- *       - максимальную температуру
- * @note Для годовой статистики используются аналогичные показатели
- * @note Средние значения рассчитываются только при наличии данных (count > 0)
- * @warning При пустом стеке выводится предупреждающее сообщение
- * @warning Нумерация месяцев в массиве monthly: 0-11 (январь-декабрь)
- *
- * Пример использования:
- * @code
- * temp_stats stats = calculate_stats(sensor_stack);
- * print_yearly_stats(&stats);
- * @endcode
+ * @note Для пустого списка возвращает структуру с нулевыми значениями.
+ * @note Месяцы в массиве monthly: 0-11 (январь-декабрь).
  */
-temp_stats calculate_stats(node* top)
+temp_stats calculate_stats(node* head)
 {
     temp_stats stats = { 0 };
 
-    if (top == NULL)
+    if (head == NULL)
     {
-        printf("Stack is empty!\n");
+        fprintf(stderr, "Warning: Empty list in calculate_stats()\n");
         return stats;
     }
-    // Инициализация статистики
-    init_temp_stats(&stats, top->data.year);
 
-    node* current = top;
+    // Инициализация статистики годом первого элемента
+    init_temp_stats(&stats, head->data.year);
+
+    node* current = head;
+
     // Обработка данных
     while (current != NULL)
     {
-        int month_idx = current->data.month - 1;
+        uint8_t month_idx = current->data.month - 1;
         int8_t temp = current->data.temperature;
 
-        // Обновление месячной статистики
-        stats.monthly[month_idx].total_temp += temp;
-        if (temp < stats.monthly[month_idx].min_temp)
-            stats.monthly[month_idx].min_temp = temp;
-        if (temp > stats.monthly[month_idx].max_temp)
-            stats.monthly[month_idx].max_temp = temp;
-        stats.monthly[month_idx].count++;
+        // Проверка согласованности года (все данные должны быть одного года)
+        if (current->data.year != stats.year)
+        {
+            fprintf(stderr, "Warning: Inconsistent year %d (expected %d)\n",
+                current->data.year, stats.year);
+            current = current->next;
+            continue;
+        }
 
-        // Обновление годовой статистики
+        // Месячная статистика
+        stats.monthly[month_idx].total_temp += temp;
+        stats.monthly[month_idx].count++;
+        if (temp < stats.monthly[month_idx].min_temp)
+        {
+            stats.monthly[month_idx].min_temp = temp;
+        }
+        if (temp > stats.monthly[month_idx].max_temp)
+        {
+            stats.monthly[month_idx].max_temp = temp;
+        }
+
+        // Годовая статистика
         stats.yearly.total_temp += temp;
+        stats.yearly.count++;
         if (temp < stats.yearly.min_temp) stats.yearly.min_temp = temp;
         if (temp > stats.yearly.max_temp) stats.yearly.max_temp = temp;
-        stats.yearly.count++;
 
         current = current->next;
     }
@@ -670,55 +595,37 @@ temp_stats calculate_stats(node* top)
         }
     }
 
-    // Правильный расчет средней за год!
+    // Расчет средней за год!
     if (stats.yearly.count > 0)
     {
         stats.yearly.avg_temp = (float)stats.yearly.total_temp / stats.yearly.count;
     }
 
-    // Вывод результатов
-    // print_monthly_stats(&stats, 0);
-    // print_yearly_stats(&stats);
-
     return stats;
 }
 
 /**
- * @brief Выводит месячную статистику температурных показателей в виде таблицы
+ * @brief Выводит статистику по месяцам в табличном формате.
  *
- * Функция выводит статистику температур для указанного месяца или для всех месяцев,
- * если в качестве параметра month передан 0. Вывод включает:
- * - Год наблюдений
- * - Номер месяца
- * - Количество измерений
- * - Среднюю температуру
- * - Максимальную температуру
- * - Минимальную температуру
+ * @param stats Указатель на структуру с данными.
+ * @param month Номер месяца (1-12) или 0 для всех месяцев.
  *
- * @param[in] stats Указатель на структуру temp_stats с данными статистики
- * @param[in] month Номер месяца (1-12) или 0 для вывода всех месяцев
- *
- * @note Формат вывода:
- * ------------------------------------------------------
- *  Year | Month | Count | Avg Temp | Max Temp | Min Temp
- * ------|-------|-------|----------|----------|---------
- *  2023 |     1 |   31  |    -5.2  |      12  |     -15
- *
- * @note При month=0 выводится статистика только для месяцев с ненулевым количеством
- * измерений
- * @note При отсутствии данных для указанного месяца выводится соответствующее
- * сообщение
- * @note Для некорректного номера месяца (>12) выводится сообщение об ошибке
- * @warning Нумерация месяцев в выводе: 1-12 (в структуре индексы 0-11)
+ * @note Для месяцев без данных выводится "N/A".
  */
 void print_monthly_stats(const temp_stats* stats, uint8_t month)
 {
-    // Проверка корректности параметра month
-    if (month > 12)
+    if (stats == NULL)
     {
-        printf("Error: Invalid month number! Must be 0 (all months) or 1-12.\n");
+        fprintf(stderr, "Error: NULL stats pointer\n");
         return;
     }
+
+    // Проверка корректности параметра month
+    // if (month > 12)
+    // {
+    //     printf("Error: Invalid month number! Must be 0 (all months) or 1-12.\n");
+    //     return;
+    // }
 
     // Заголовок таблицы
     printf("------------------------------------------------------\n");
@@ -738,60 +645,58 @@ void print_monthly_stats(const temp_stats* stats, uint8_t month)
             }
         }
     }
-    else
+    else if (month >= 1 && month <= 12)
     {
         // Вывод статистики за конкретный месяц
-        int month_idx = month - 1;
-        if (stats->monthly[month_idx].count > 0)
+        int idx = month - 1;
+        if (stats->monthly[idx].count > 0)
         {
             printf("%5d | %5d | %5d | %8.1f | %8d | %8d\n", stats->year, month,
-                stats->monthly[month_idx].count, stats->monthly[month_idx].avg_temp,
-                stats->monthly[month_idx].max_temp,
-                stats->monthly[month_idx].min_temp);
+                stats->monthly[idx].count, stats->monthly[idx].avg_temp,
+                stats->monthly[idx].max_temp, stats->monthly[idx].min_temp);
         }
         else
         {
-            printf("No data available for month %d\n", month);
+            printf("| %4d | %5s | %5s | %8s | %8s | %8s |\n", month, "N/A", "N/A",
+                "N/A", "N/A", "N/A");
         }
+    }
+    else
+    {
+        fprintf(stderr, "Error: Invalid month %d\n", month);
     }
 }
 
 /**
- * @brief Выводит годовую статистику температурных показателей в виде таблицы
+ * @brief Выводит сводную годовую статистику.
  *
- * Функция форматирует и выводит на стандартный вывод статистику за год
- * в виде читаемой таблицы с заголовками. Вывод включает:
- * - Год наблюдений
- * - Общее количество измерений
- * - Среднегодовую температуру
- * - Максимальную зафиксированную температуру
- * - Минимальную зафиксированную температуру
- *
- * @param[in] stats Указатель на структуру temp_stats, содержащую статистические
- * данные
- *
- * @note Формат вывода:
- * -----------------------------------------------
- *  Year | Count | Avg Temp | Max Temp | Min Temp
- * ------|-------|----------|----------|----------
- *  2023 |   365 |     15.2 |       35 |       -5
- *
- * @note Для среднего значения используется формат вывода с 1 десятичным знаком
- * @note Для экстремальных значений используется целочисленный формат
+ * @param stats Указатель на структуру с данными.
  */
 void print_yearly_stats(const temp_stats* stats)
 {
-    printf("\nYearly statistics:\n");
-    printf("------------------------------------------------\n");
-    printf(" Year | Count  | Avg Temp | Max Temp | Min Temp\n");
-    printf("------|--------|----------|----------|----------\n");
-    printf("%5d   %5d   %7.1f   %8d   %8d\n",
-        stats->year, // Год
-        stats->yearly.count, // Общее количество измерений
-        stats->yearly.avg_temp, // Средняя за год
-        stats->yearly.max_temp, // Абсолютный максимум
-        stats->yearly.min_temp); // Абсолютный минимум
-    printf("\n");
+    if (stats == NULL)
+    {
+        fprintf(stderr, "Error: NULL stats pointer\n");
+        return;
+    }
+    if (stats->yearly.count > 0)
+    {
+        printf("\nYearly statistics:\n");
+        printf("------------------------------------------------\n");
+        printf(" Year | Count  | Avg Temp | Max Temp | Min Temp\n");
+        printf("------|--------|----------|----------|----------\n");
+        printf("%5d   %5d   %7.1f   %8d   %8d\n",
+            stats->year, // Год
+            stats->yearly.count, // Общее количество измерений
+            stats->yearly.avg_temp, // Средняя за год
+            stats->yearly.max_temp, // Абсолютный максимум
+            stats->yearly.min_temp); // Абсолютный минимум
+        printf("\n");
+    }
+    else
+    {
+        printf("| %9s | %10s | %8s | %8s |\n", "N/A", "N/A", "N/A", "N/A");
+    }
 }
 
 /*----------------------------------------------------------------------------*/
@@ -799,50 +704,108 @@ void print_yearly_stats(const temp_stats* stats)
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Сортирует стек записей по заданному критерию
+ * @brief Компаратор для сортировки по дате/времени.
  *
- * Функция извлекает все элементы из стека во временный массив, сортирует его
- * с помощью стандартной функции qsort(), затем возвращает элементы обратно в стек.
- * При этом элементы помещаются в обратном порядке, чтобы верхний элемент стека
- * соответствовал первому элементу в отсортированном массиве.
- *
- * @param[in,out] top Указатель на вершину стека
- * @param[in] load_info Структура с информацией о загруженных данных, содержащая
- *                      количество валидных записей (valid_records)
- * @param[in] td Критерий сортировки:
- *               - 'd' - сортировка по дате (использует compare_by_date)
- *               - 't' - сортировка по температуре (использует compare_by_temp)
- *
- * @note Размер временного массива определяется полем load_info.valid_records
- * @note После выполнения функции стек будет содержать те же элементы,
- *       но в отсортированном порядке (верхний элемент - первый в отсортированном
- * массиве)
+ * @param a Указатель на первую структуру sensor.
+ * @param b Указатель на вторую структуру sensor.
+ * @return int Результат сравнения:
+ *             <0 если a < b
+ *              0 если a == b
+ *             >0 если a > b
  */
-void sort_list(node** head, node** tail, char td)
+static int compare_by_date(const void* a, const void* b)
 {
-    if (*head == NULL || (*head)->next == NULL) return;
+    /* Сортировка по возрастанию */
+    // --------------------------//
+    const sensor* sa = (const sensor*)a;
+    const sensor* sb = (const sensor*)b;
 
-    // Подсчёт элементов
-    int count = 0;
-    node* temp = *head;
-    while (temp != NULL)
+    // Сравнение по годам
+    if (sa->year != sb->year) return sa->year - sb->year;
+
+    // Затем по месяцам
+    if (sa->month != sb->month) return sa->month - sb->month;
+
+    // Затем по дням
+    if (sa->day != sb->day) return sa->day - sb->day;
+
+    // Затем по часам
+    if (sa->hour != sb->hour) return sa->hour - sb->hour;
+
+    // И наконец по минутам
+    return sa->minute - sb->minute;
+}
+
+/**
+ * @brief Компаратор для сортировки по температуре.
+ *
+ * @param a Указатель на первую структуру sensor.
+ * @param b Указатель на вторую структуру sensor.
+ * @return int Результат сравнения (аналогично compare_by_date).
+ */
+static int compare_by_temp(const void* a, const void* b)
+{
+    /* Сортировка по возрастанию */
+    // --------------------------//
+    const sensor* sa = (const sensor*)a;
+    const sensor* sb = (const sensor*)b;
+
+    // Сначала сравниваем температуру
+    int temp_diff = sa->temperature - sb->temperature;
+
+    // При равной температуре сортируем по дате
+    return (temp_diff != 0) ? temp_diff : compare_by_date(a, b);
+}
+
+/**
+ * @brief Сортирует двунаправленный список по указанному критерию.
+ *
+ * @param head Указатель на указатель головы списка.
+ * @param tail Указатель на указатель хвоста списка.
+ * @param criteria Критерий сортировки:
+ *                'd' - по дате (год → месяц → день → час → минута)
+ *                't' - по температуре
+ *
+ * @note Использует временный массив для сортировки через qsort().
+ * @note Сохраняет исходный порядок при равных значениях (стабильная сортировка).
+ */
+void sort_list(node** head, node** tail, char criteria)
+{
+    if (head == NULL || *head == NULL || (*head)->next == NULL)
     {
-        count++;
-        temp = temp->next;
+        return; // Нет необходимости сортировать пустой или единичный элемент
     }
 
-    // 1. Извлекаем все элементы в массив
-    sensor* arr = (sensor*)malloc(count * sizeof(sensor));
-    temp = *head;
-    for (int i = 0; i < count; i++)
+    // Подсчёт элементов
+    size_t count = 0;
+    node* current = *head;
+    while (current != NULL)
     {
-        arr[i] = temp->data;
-        temp = temp->next;
+        count++;
+        current = current->next;
+    }
+
+    // Выделение временного массива
+    sensor* arr = (sensor*)malloc(count * sizeof(sensor));
+    if (arr == NULL)
+    {
+        perror("Failed to allocate memory for sorting");
+        return;
+    }
+
+    // Заполнение массива данными из списка
+    current = *head;
+    for (size_t i = 0; i < count; i++)
+    {
+        arr[i] = current->data;
+        current = current->next;
     }
 
     // 2. Сортируем массив
-    qsort(arr, count, sizeof(sensor), td == 'd' ? compare_by_date : compare_by_temp);
-    // Очистка списка
+    qsort(arr, count, sizeof(sensor),
+        criteria == 'd' ? compare_by_date : compare_by_temp);
+
+    // Очищаем старый список
     free_list(head, tail);
 
     // Заполнение отсортированными данными

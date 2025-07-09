@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
 #if DEBUG_MODE
     // ======================================================================
     load_stats load_info;
-    load_from_csv("temperature_big.csv", &top, ';', &load_info);
+    load_from_csv("temperature_big.csv", &head, &tail, ';', &load_info);
     print_load_stats(&load_info);
     // ======================================================================
 #else
@@ -55,14 +55,16 @@ int main(int argc, char* argv[])
         printf("\n");
     }
 
-    // -------------- Сортировка и печать ---------------//
+    // -------------- Сортировка ------------------------//
     if (args.sort == 'd' || args.sort == 't')
     {
         sort_list(&head, &tail, args.sort);
-        if (args.printdb)
-        {
-            print_list(tail, args.printdb, false); // Печать с начала
-        }
+    }
+
+    // --------------Печать (в прямом порядке)-----------//
+    if (args.printdb)
+    {
+        print_list(tail, args.printdb, true);
     }
 
 #endif // DEBUG_MODE

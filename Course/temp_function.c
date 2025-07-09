@@ -368,7 +368,14 @@ void print_list(const node* current, int num, bool reverse)
         printf("List is empty.\n");
         return;
     }
-
+    // Для прямого порядка (как в файле) начинаем с tail и идём по prev
+    // if (!reverse)
+    // {
+    //     while (current->next != NULL)
+    //     {
+    //         current = current->next; // Переходим к tail
+    //     }
+    // }
     // Для прямого порядка начинаем с головы (идём от старого к новому)
     if (!reverse)
     {
@@ -500,25 +507,24 @@ size_t load_from_csv(const char* filename, node** head, node** tail, char delimi
  */
 void print_load_stats(const load_stats* load_info)
 {
-    printf("\n=== File Loading Statistics ===\n");
-    printf("File:          %s\n", load_info->filename);
-    printf("Total lines:   %zu\n", load_info->total_lines);
-    printf("Valid:         %zu\n", load_info->valid_records);
-    printf("Empty:         %zu\n", load_info->empty_lines);
-    printf("Invalid:       %zu\n", load_info->invalid_values);
-    printf("Log file:      %s\n", load_info->logfile);
-    printf("==============================\n");
-    // printf("--------------------------------\n");
-    // printf("File loading statistics:\n");
-    // printf("--------------------------------\n");
-    // printf("File Name:             %s\n", load_info->filename);
-    // printf("Total lines processed: %zu\n", load_info->total_lines);
-    // printf("Empty lines/comments:  %zu\n", load_info->empty_lines);
-    // printf("Valid records:         %zu\n", load_info->valid_records);
-    // printf("Invalid format:        %zu\n", load_info->invalid_format);
-    // printf("Invalid values:        %zu\n", load_info->invalid_values);
-    // printf("LogFile:               %s\n", load_info->logfile);
-    // printf("\n");
+    if (load_info == NULL)
+    {
+        fprintf(stderr, "Error: NULL load info pointer\n");
+        return;
+    }
+
+    printf("\nFile Loading Statistics:\n");
+    printf("--------------------------------------\n");
+    printf(" Parameter          | Value\n");
+    printf("--------------------|-----------------\n");
+    printf(" Source file        | %s\n", load_info->filename);
+    printf(" Total lines        | %zu\n", load_info->total_lines);
+    printf(" Valid records      | %zu\n", load_info->valid_records);
+    printf(" Empty lines        | %zu\n", load_info->empty_lines);
+    printf(" Invalid values     | %zu\n", load_info->invalid_values);
+    printf(" Log file           | %s\n", load_info->logfile);
+    // printf("--------------------------------------\n");
+    printf("\n");
 }
 
 /*----------------------------------------------------------------------------*/
@@ -628,6 +634,7 @@ void print_monthly_stats(const temp_stats* stats, uint8_t month)
     // }
 
     // Заголовок таблицы
+    printf("Monthly Temperature Statistics:\n");
     printf("------------------------------------------------------\n");
     printf(" Year | Month | Count | Avg Temp | Max Temp | Min Temp\n");
     printf("------|-------|-------|----------|----------|---------\n");

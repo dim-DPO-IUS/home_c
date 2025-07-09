@@ -837,15 +837,12 @@ void sort_list(node** head, node** tail, char criteria)
  */
 int parse_arguments(int argc, char* argv[], cmd_args* args)
 {
-    // Вызов без аргументов
-    if (argc == 1)
-    {
-        printf(START_MSG);
-        return 1;
-    }
+    // Специальный случай: вызов без аргументов
+    if (argc == 1) return 2;
 
     // Обнуляем структуру
     memset(args, 0, sizeof(cmd_args));
+
     // Начинаем с 1, так как argv[0] - имя программы
     for (int i = 1; i < argc; i++)
     {
@@ -863,7 +860,7 @@ int parse_arguments(int argc, char* argv[], cmd_args* args)
                 fprintf(stderr, "Error: Missing filename after -f\n");
                 return -1;
             case 'm': fprintf(stderr, "Error: Missing month after -m\n"); return -1;
-            case 'y': fprintf(stderr, "Error: Missing year after -y\n"); return -1;
+            // case 'y': fprintf(stderr, "Error: Missing year after -y\n"); return -1;
             case 'p': fprintf(stderr, "Error: Missing count after -p\n"); return -1;
             case 's': fprintf(stderr, "Error: Missing count after -s\n"); return -1;
             }

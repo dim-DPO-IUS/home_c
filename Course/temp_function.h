@@ -93,7 +93,7 @@ static const char HELP_MSG[]
 typedef struct cmd_args {
     const char* filename; ///< Имя входного CSV-файла с данными
     uint8_t month; ///< Месяц для анализа (1-12, 0 - все месяцы)
-    uint8_t printdb; ///< Флаг вывода базы данных (0/1)
+    uint8_t printdb; ///< Печать - сколько строк вывести
     char sort; ///< Критерий сортировки ('d'-дата, 't'-температура)
 } cmd_args;
 
@@ -301,7 +301,7 @@ void sort_list(node** head, node** tail, char criteria);
  * @param argc Количество аргументов
  * @param argv Массив аргументов
  * @param args Структура для результатов
- * @return 0 - успешно, 1 - вывод справки, -1 - ошибка
+ * @return 0 - успешно, 1 - вывод справки, -1 - ошибка, 2 - вызов без аргументов
  */
 int parse_arguments(int argc, char* argv[], cmd_args* args);
 

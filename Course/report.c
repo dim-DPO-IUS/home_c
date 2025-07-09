@@ -27,57 +27,66 @@ int main(int argc, char* argv[])
     cmd_args args;
     switch (parse_arguments(argc, argv, &args))
     {
-    case -1: // Error in arguments
+    case -1: // Ошибка в аргументах
         free_list(&head, &tail);
         return 1;
-    case 1: // Help message shown
+    case 1: // Показана справка (-h)
         free_list(&head, &tail);
         return 0;
-    }
-
-    /* File loading */
-    if (args.filename)
-    {
-        load_stats load_info;
-        if (load_from_csv(args.filename, &head, &tail, ';', &load_info))
+    case 2: // Вызов без аргументов
+        printf(START_MSG);
+        free_list(&head, &tail);
+        return 0;
+    case 0: // Нормальное выполнение
+        /* File loading */
+        if (args.filename)
         {
-            /* Default output when no specific options */
-            if (!args.month && !args.printdb && !args.sort)
+            load_stats load_info;
+            if (load_from_csv(args.filename, &head, &tail, ';', &load_info))
             {
-                print_load_stats(&load_info);
-                temp_stats stats = calculate_stats(head);
-                print_monthly_stats(&stats, 0);
-                print_yearly_stats(&stats);
-            }
+                /* Default output when no specific options */
+                if (!args.month && !args.printdb && !args.sort)
+                {
+                    print_load_stats(&load_info);
+                    temp_stats stats = calculate_stats(head);
+                    print_monthly_stats(&stats, 0);
+                    print_yearly_stats(&stats);
+                }
 
-            /* Monthly stats */
-            if (args.month)
-            {
-                temp_stats stats = calculate_stats(head);
-                print_monthly_stats(&stats, args.month);
-            }
+                /* Monthly stats */
+                if (args.month)
+                {
+                    temp_stats stats = calculate_stats(head);
+                    print_monthly_stats(&stats, args.month);
+                }
 
-            /* Sorting */
-            if (args.sort == 'd' || args.sort == 't')
-            {
-                sort_list(&head, &tail, args.sort);
-            }
+                /* Sorting */
+                if (args.sort == 'd' || args.sort == 't')
+                {
+                    sort_list(&head, &tail, args.sort);
+                }
 
-            /* Printing */
-            if (args.printdb)
+                /* Printing */
+                if (args.printdb)
+                {
+                    if (args.sort) // сортировка
+                        print_list(tail, args.printdb, false); // по возрастанию
+                    else // без сортировки
+                        print_list(tail, args.printdb, true); // в порядке файла
+                }
+            }
+            else
             {
-                if (args.sort) // сортировка
-                    print_list(tail, args.printdb, false); // по возрастанию
-                else // без сортировки
-                    print_list(tail, args.printdb, true); // в порядке файла
+                printf("No valid data found in file\n");
+                free_list(&head, &tail);
+                return 1;
             }
         }
-        else
-        {
-            printf("No valid data found in file\n");
-            free_list(&head, &tail);
-            return 1;
-        }
+        break;
+    default: // Неожиданный код возврата
+        fprintf(stderr, "Unexpected return code from parse_arguments()\n");
+        free_list(&head, &tail);
+        return 1;
     }
 
 #endif // DEBUG_MODE

@@ -118,45 +118,33 @@ static int parse_number(const char** str, int* number)
 }
 
 /**
- * @brief Парсит и валидирует поле CSV-строки
+ * @brief Парсит числовое поле из CSV-строки.
  *
- * Вспомогательная функция для парсинга отдельных полей CSV-строки.
- * Выполняет:
- * - Пропуск пробелов до и после значения
- * - Парсинг числового значения
- * - Проверку на соответствие допустимому диапазону
- * - Проверку наличия корректного разделителя после значения
- *
- * @param[in,out] p Указатель на указатель текущей позиции в строке (будет изменен)
- * @param[in] min_val Минимально допустимое значение поля
- * @param[in] max_val Максимально допустимое значение поля
- * @param[in] delimiter Ожидаемый символ-разделитель после поля
- * @return Значение поля (>=0) при успешном парсинге, -1 при ошибке
- *
- * @note Поддерживает пробелы до и после числового значения
- * @note Для последнего поля в строке можно передать delimiter='\0'
- * @note Изменяет указатель *p, перемещая его на следующее поле
- * @note Использует вспомогательную функцию parse_number() для парсинга чисел
- *
- * Пример использования:
- * @code
- * const char* ptr = "2023,12,31";
- * int year = parse_csv_field(&ptr, 2000, 2100, ',');
- * @endcode
+ * @param p             Указатель на текущую позицию в строке.
+ * @param min_val       Минимальное допустимое значение.
+ * @param max_val       Максимальное допустимое значение.
+ * @param delimiter     Ожидаемый разделитель после поля.
+ * @return int          Значение поля или -1 при ошибке.
  */
 static int parse_csv_field(const char** p, int min_val, int max_val, char delimiter)
 {
     int val;
+
     // Пропускаем пробелы перед числом
     while (**p == ' ') (*p)++;
+
     // Парсим число
     if (!parse_number(p, &val)) return -1;
+
     // Проверка диапазона
     if (val < min_val || val > max_val) return -1;
+
     // Пропускаем пробелы после числа
     while (**p == ' ') (*p)++;
+
     // Проверка разделителя (если требуется) Ожидался разделитель
     if (**p != delimiter && delimiter != '\0') return -1;
+
     // Пропускаем разделитель (если не конец строки)
     if (delimiter != '\0') (*p)++;
 
@@ -164,29 +152,12 @@ static int parse_csv_field(const char** p, int min_val, int max_val, char delimi
 }
 
 /**
- * @brief Проверяет валидность строки CSV-файла и извлекает данные
+ * @brief Проверяет, является ли строка CSV валидной.
  *
- * Функция парсит строку CSV-файла, проверяет соответствие формату и
- * корректность значений. При успешной проверке заполняет структуру sensor.
- *
- * @param[in] line Строка CSV-файла для парсинга
- * @param[in] delimiter Символ-разделитель полей в CSV
- * @param[out] data Указатель на структуру sensor для записи данных
- * @return true если строка валидна и данные извлечены успешно,
- *         false если строка не соответствует формату или содержит некорректные
- * значения
- *
- * @note Ожидаемый формат строки: год,месяц,день,час,минута,температура
- * @note Проверяет:
- *       - корректность количества полей
- *       - допустимость значений даты/времени
- *       - диапазон температур (INT8_MIN..INT8_MAX)
- * @note Для некорректных строк выводит сообщение об ошибке в stderr
- *
- * Пример корректной строки:
- * @code
- * 2023,12,31,23,59,15
- * @endcode
+ * @param line          Строка из CSV-файла.
+ * @param delimiter     Разделитель полей.
+ * @param output        Указатель на структуру sensor для записи данных.
+ * @return int          1 — если строка валидна, 0 — если нет.
  */
 static int is_valid_line(const char* line, char delimiter, sensor* output)
 {
@@ -208,6 +179,17 @@ static int is_valid_line(const char* line, char delimiter, sensor* output)
         return 0;
     }
 
+    // Проверка дней в месяце (учитывая високосные годы)
+    if (month == 2)
+    {
+        int max_day = is_leap_year(year) ? 29 : 28;
+        if (day > max_day) return 0;
+    }
+    else if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
+    {
+        return 0;
+    }
+
     // Записываем значения в структуру
     output->year = (uint16_t)year;
     output->month = (uint8_t)month;
@@ -215,23 +197,6 @@ static int is_valid_line(const char* line, char delimiter, sensor* output)
     output->hour = (uint8_t)hour;
     output->minute = (uint8_t)minute;
     output->temperature = (int8_t)temperature;
-
-    // Проверка конца строки
-    while (*p == ' ') p++;
-    if (*p != '\0' && *p != '\n' && *p != '\r') return 0;
-
-    // Проверка дней в месяце + високосный год
-    if (output->month == 2)
-    {
-        int max_day = is_leap_year(output->year) ? 29 : 28;
-        if (output->day > max_day) return 0;
-    }
-    else if ((output->month == 4 || output->month == 6 || output->month == 9
-                 || output->month == 11)
-        && output->day > 30)
-    {
-        return 0;
-    }
 
     return 1;
 }
@@ -339,7 +304,7 @@ static int compare_by_temp(const void* a, const void* b)
 }
 
 /*----------------------------------------------------------------------------*/
-/*                            СТЭК                                            */
+/*                            Doubly Linked List (LIFO)                       */
 /*----------------------------------------------------------------------------*/
 
 /**
@@ -503,72 +468,47 @@ void print_list(const node* current, int num, bool reverse)
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Загружает данные из CSV-файла в стек и собирает статистику загрузки
+ * @brief Загружает данные из CSV-файла в двунаправленный список.
  *
- * Функция читает файл построчно, парсит записи о температуре и загружает их в стек.
- * В процессе загрузки собирается статистика:
- * - Общее количество строк в файле
- * - Количество пустых строк и строк-комментариев
- * - Количество строк с некорректными данными
- * - Количество успешно загруженных записей
- *
- * @param[in] filename Путь к CSV-файлу для загрузки
- * @param[out] top Указатель на указатель вершины стека (данные будут добавлены в
- * стек)
- * @param[in] delimiter Разделитель полей в CSV-файле
- * @param[out] load_info Указатель на структуру для сбора статистики загрузки
- * @return Количество успешно загруженных записей (valid_records)
- *
- * @note Формат CSV-файла должен соответствовать структуре sensor
- * @note Строки, начинающиеся с '#' считаются комментариями
- * @note Пустые строки пропускаются (учитываются в статистике)
- * @note Для валидации строк используется функция is_valid_line()
- * @note В случае ошибки открытия файла возвращает 0 и выводит сообщение об ошибке
- * @warning Максимальная длина строки ограничена 255 символами
- * @warning Имя файла в статистике обрезается до FILENAME_MAX-1 символов
- *
- * Пример использования:
- * @code
- * node* stack = NULL;
- * load_stats stats;
- * size_t loaded = load_from_csv("data.csv", &stack, ',', &stats);
- * printf("Loaded %zu valid records\n", loaded);
- * @endcode
+ * @param filename      Имя CSV-файла.
+ * @param head          Указатель на голову списка.
+ * @param tail          Указатель на хвост списка.
+ * @param delimiter     Разделитель полей в CSV.
+ * @param load_info     Структура для статистики загрузки.
+ * @return size_t       Количество успешно загруженных записей.
  */
-
 size_t load_from_csv(const char* filename, node** head, node** tail, char delimiter,
     load_stats* load_info)
 {
-    // Инициализация статистики
+    // Инициализация структуры статистики
     memset(load_info, 0, sizeof(load_stats));
-    // Запишем имя файла
     strncpy(load_info->filename, filename, sizeof(load_info->filename) - 1);
     load_info->filename[sizeof(load_info->filename) - 1] = '\0';
 
-    // Открываем файл журнала ошибок в режиме "w" (перезапись)
-    FILE* log_file = fopen(LOG_FILENAME, "w"); // "w" - пересоздаёт файл
-    if (!log_file)
-    {
-        perror("Failed to create log file");
-        log_file = stderr; // Fallback на stderr, если не удалось открыть файл
-    }
-    else
-    {
-        // Запишем имя лог-файла
-        strncpy(load_info->logfile, LOG_FILENAME, sizeof(load_info->logfile) - 1);
-        load_info->logfile[sizeof(load_info->logfile) - 1] = '\0';
-    }
+    // Всегда записываем ожидаемое имя лог-файла
+    strncpy(load_info->logfile, LOG_FILENAME, sizeof(load_info->logfile) - 1);
+    load_info->logfile[sizeof(load_info->logfile) - 1] = '\0';
+    load_info->log_success = false; // Флаг успешности открытия лога
 
-    // Открываем файл данных
+    // 1. Сначала пробуем открыть основной файл данных
     FILE* file = fopen(filename, "r");
     if (!file)
     {
-        fprintf(log_file, "Failed to open input file: %s\n", filename);
-        perror("Failed to open file");
-        // Закрыть логфайл
-        if (log_file != stderr) fclose(log_file);
-
+        perror("Failed to open data file");
         return 0;
+    }
+
+    // 2. Затем открываем лог-файл
+    FILE* log_file = fopen(LOG_FILENAME, "w");
+    if (!log_file)
+    {
+        log_file = stderr;
+        fprintf(log_file, "Warning: Could not open log file '%s'. Using stderr.\n",
+            LOG_FILENAME);
+    }
+    else
+    {
+        load_info->log_success = true; // флаг успешности открытия лог файла
     }
 
     char line[32];
@@ -578,7 +518,9 @@ size_t load_from_csv(const char* filename, node** head, node** tail, char delimi
     while (fgets(line, sizeof(line), file))
     {
         load_info->total_lines++;
-        line[strcspn(line, "\r\n")] = '\0'; // Удаление символов новой строки
+
+        // Удаление символов новой строки
+        line[strcspn(line, "\r\n")] = '\0';
 
         // Пустые строки и комментарии
         if (line[0] == '\0' || line[0] == '#')
@@ -604,54 +546,50 @@ size_t load_from_csv(const char* filename, node** head, node** tail, char delimi
     }
 
     fclose(file); // звкрыть файл с данными
-
     if (log_file != stderr) fclose(log_file); // закрыть лог файл
+
+    // Дополнительная информация в лог
+    if (load_info->log_success)
+    {
+        FILE* log = fopen(LOG_FILENAME, "a");
+        if (log)
+        {
+            fprintf(log, "=== Loading completed ===\n");
+            fprintf(log, "Total records: %zu\n", load_info->valid_records);
+            fprintf(log, "Errors: %zu\n", load_info->invalid_values);
+            fclose(log);
+        }
+    }
 
     return load_info->valid_records;
 }
 
 /**
- * @brief Выводит статистику загрузки данных в удобочитаемом формате
+ * @brief Выводит статистику загрузки данных.
  *
- * Функция форматирует и выводит на стандартный вывод (stdout) статистику
- * загрузки данных, включая:
- * - Имя обработанного файла
- * - Общее количество обработанных строк
- * - Количество пустых строк и комментариев
- * - Количество успешно загруженных записей
- * - Количество строк с неверным форматом
- * - Количество строк с некорректными значениями
- *
- * @param[in] load_info Указатель на структуру со статистикой загрузки
- *
- * @note Формат вывода:
- *
- * File loading statistics:
- * --------------------------------
- * File Name:             data.csv
- * Total lines processed: 100
- * Empty lines/comments:  5
- * Valid records:         90
- * Invalid format:        3
- * Invalid values:        2
- * --------------------------------
- *
- * @note Все значения выводятся в виде целых чисел (size_t)
- * @note Для вывода используется форматированная таблица с выравниванием
+ * @param load_info     Указатель на структуру load_stats.
  */
 void print_load_stats(const load_stats* load_info)
 {
-    printf("--------------------------------\n");
-    printf("File loading statistics:\n");
-    printf("--------------------------------\n");
-    printf("File Name:             %s\n", load_info->filename);
-    printf("Total lines processed: %zu\n", load_info->total_lines);
-    printf("Empty lines/comments:  %zu\n", load_info->empty_lines);
-    printf("Valid records:         %zu\n", load_info->valid_records);
-    printf("Invalid format:        %zu\n", load_info->invalid_format);
-    printf("Invalid values:        %zu\n", load_info->invalid_values);
-    printf("LogFile:               %s\n", load_info->logfile);
-    printf("\n");
+    printf("\n=== File Loading Statistics ===\n");
+    printf("File:          %s\n", load_info->filename);
+    printf("Total lines:   %zu\n", load_info->total_lines);
+    printf("Valid:         %zu\n", load_info->valid_records);
+    printf("Empty:         %zu\n", load_info->empty_lines);
+    printf("Invalid:       %zu\n", load_info->invalid_values);
+    printf("Log file:      %s\n", load_info->logfile);
+    printf("==============================\n");
+    // printf("--------------------------------\n");
+    // printf("File loading statistics:\n");
+    // printf("--------------------------------\n");
+    // printf("File Name:             %s\n", load_info->filename);
+    // printf("Total lines processed: %zu\n", load_info->total_lines);
+    // printf("Empty lines/comments:  %zu\n", load_info->empty_lines);
+    // printf("Valid records:         %zu\n", load_info->valid_records);
+    // printf("Invalid format:        %zu\n", load_info->invalid_format);
+    // printf("Invalid values:        %zu\n", load_info->invalid_values);
+    // printf("LogFile:               %s\n", load_info->logfile);
+    // printf("\n");
 }
 
 /*----------------------------------------------------------------------------*/

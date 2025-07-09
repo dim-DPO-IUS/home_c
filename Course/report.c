@@ -79,49 +79,6 @@ int main(int argc, char* argv[])
             return 1;
         }
     }
-    // -------------- Загрузка из файла -----------------//
-    // load_stats load_info;
-    // if (args.filename) // имя файла
-    // {
-    //     if (load_from_csv(args.filename, &head, &tail, ';', &load_info))
-    //     {
-    //         if (!args.month && !args.printdb && !args.sort)
-    //         {
-    //             print_load_stats(&load_info); // Статистика загрузки
-    //             temp_stats stats
-    //                 = calculate_stats(head); // Счет статистики температур
-    //             print_monthly_stats(&stats, 0); // Все месяцы
-    //             print_yearly_stats(&stats); // Годовая статистика
-    //         }
-    //     }
-    //     else
-    //     {
-    //         printf("Нет валидных данных\n");
-    //     }
-    // }
-
-    // // -------------- Статистика за месяц ---------------//
-    // if (args.month)
-    // {
-    //     temp_stats stats = calculate_stats(head);
-    //     print_monthly_stats(&stats, args.month);
-    //     printf("\n");
-    // }
-
-    // // -------------- Сортировка ------------------------//
-    // if (args.sort == 'd' || args.sort == 't')
-    // {
-    //     sort_list(&head, &tail, args.sort);
-    // }
-
-    // // --------------Печать (в прямом порядке)-----------//
-    // if (args.printdb)
-    // {
-    //     if (args.sort) // сортировка
-    //         print_list(tail, args.printdb, false); // по возрастанию
-    //     else // без сортировки
-    //         print_list(tail, args.printdb, true); // в порядке файла
-    // }
 
 #endif // DEBUG_MODE
 

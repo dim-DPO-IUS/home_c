@@ -325,4 +325,14 @@ void sort_list(node** head, node** tail, char criteria);
  */
 int parse_arguments(int argc, char* argv[], cmd_args* args);
 
+/**
+ * @brief Обрабатывает данные согласно указанному режиму работы
+ *
+ * @param head Указатель на голову списка
+ * @param tail Указатель на хвост списка
+ * @param args Параметры командной строки
+ * @param load_info Статистика загрузки
+ */
+void process_data_mode(node* head, node* tail, cmd_args* args, load_stats* load_info);
+
 #endif // TEMP_FUNCTION_H

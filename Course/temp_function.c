@@ -919,6 +919,43 @@ int parse_arguments(int argc, char* argv[], cmd_args* args)
     return 0;
 }
 
+/**
+ * @brief Обрабатывает данные согласно указанному режиму работы
+ *
+ * @param head Указатель на голову списка
+ * @param tail Указатель на хвост списка
+ * @param args Параметры командной строки
+ * @param load_info Статистика загрузки
+ */
+void process_data_mode(node* head, node* tail, cmd_args* args, load_stats* load_info)
+{
+    switch (args->mode)
+    {
+    case MODE_FILE: { // Только файл (-f)
+        print_load_stats(load_info);
+        temp_stats stats = calculate_stats(head);
+        print_monthly_stats(&stats, 0);
+        print_yearly_stats(&stats);
+        break;
+    }
+    case MODE_FILE_MONTH: { // Файл + месяц (-f -m)
+        temp_stats stats = calculate_stats(head);
+        print_monthly_stats(&stats, args->month);
+        break;
+    }
+    case MODE_FILE_PRINT: { // Файл + печать (-f -p)
+        print_list(tail, args->printdb, true);
+        break;
+    }
+    case MODE_FILE_SORT_PRINT: { // Файл + сортировка + печать (-f -s -p)
+        sort_list(&head, &tail, args->sort);
+        print_list(tail, args->printdb, false);
+        break;
+    }
+    default: // Неизвестная комбинация
+        fprintf(stderr, "Warning: Unknown mode combination (0x%X)\n", args->mode);
+    }
+}
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*----------------------------------------------------------------------------*/

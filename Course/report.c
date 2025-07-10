@@ -24,38 +24,13 @@ int main(int argc, char* argv[])
     if (!load_from_csv(args.filename, &head, &tail, ';', &load_info))
     {
         printf("No valid data found in file\n");
-        goto cleanup;
+        free_list(&head, &tail);
+        return 0;
     }
 
-    // Определение режима работы
-    switch (args.mode)
-    {
-    case MODE_FILE: { // Только файл (-f)
-        print_load_stats(&load_info);
-        temp_stats stats = calculate_stats(head);
-        print_monthly_stats(&stats, 0);
-        print_yearly_stats(&stats);
-        break;
-    }
-    case MODE_FILE_MONTH: { // Файл + месяц (-f -m)
-        temp_stats stats = calculate_stats(head);
-        print_monthly_stats(&stats, args.month);
-        break;
-    }
-    case MODE_FILE_PRINT: { // Файл + печать (-f -p)
-        print_list(tail, args.printdb, true);
-        break;
-    }
-    case MODE_FILE_SORT_PRINT: { // Файл + сортировка + печать (-f -s -p)
-        sort_list(&head, &tail, args.sort);
-        print_list(tail, args.printdb, false);
-        break;
-    }
-    default: // Неизвестная комбинация
-        fprintf(stderr, "Warning: Unknown mode combination (0x%X)\n", args.mode);
-    }
+    // Обработка данных согласно режиму
+    process_data_mode(head, tail, &args, &load_info);
 
-cleanup:
     free_list(&head, &tail);
     return 0;
 }

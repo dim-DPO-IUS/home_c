@@ -96,9 +96,9 @@ typedef enum run_mode {
     // Комбинации режимов
     MODE_FILE_MONTH = MODE_FILE | MODE_MONTH, // 0b0011
     MODE_FILE_PRINT = MODE_FILE | MODE_PRINT, // 0b0101
-    MODE_FILE_SORT = MODE_FILE | MODE_SORT, // 0b1001
     MODE_FILE_SORT_PRINT = MODE_FILE | MODE_PRINT | MODE_SORT, // 0b1101
     /*-----------------------------------------------------------*/
+    // MODE_FILE_SORT = MODE_FILE | MODE_SORT, // 0b1001
     // MODE_FILE_MONTH_PRINT = MODE_FILE | MODE_MONTH | MODE_PRINT, // 0b0111
     // MODE_FILE_MONTH_SORT = MODE_FILE | MODE_MONTH | MODE_SORT, // 0b1011
     // MODE_FULL = MODE_FILE | MODE_MONTH | MODE_PRINT | MODE_SORT // 0b1111

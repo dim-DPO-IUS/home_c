@@ -86,12 +86,22 @@ static const char HELP_MSG[]
  * @brief Битовые флаги для режимов параметров командной строки
  *
  */
-typedef enum {
+typedef enum run_mode {
     MODE_NONE = 0, // 0b0000
     MODE_FILE = 1 << 0, // 0b0001 (обязательный)
     MODE_MONTH = 1 << 1, // 0b0010
     MODE_PRINT = 1 << 2, // 0b0100
-    MODE_SORT = 1 << 3 // 0b1000
+    MODE_SORT = 1 << 3, // 0b1000
+
+    // Комбинации режимов
+    MODE_FILE_MONTH = MODE_FILE | MODE_MONTH, // 0b0011
+    MODE_FILE_PRINT = MODE_FILE | MODE_PRINT, // 0b0101
+    MODE_FILE_SORT = MODE_FILE | MODE_SORT, // 0b1001
+    MODE_FILE_SORT_PRINT = MODE_FILE | MODE_PRINT | MODE_SORT, // 0b1101
+    /*-----------------------------------------------------------*/
+    // MODE_FILE_MONTH_PRINT = MODE_FILE | MODE_MONTH | MODE_PRINT, // 0b0111
+    // MODE_FILE_MONTH_SORT = MODE_FILE | MODE_MONTH | MODE_SORT, // 0b1011
+    // MODE_FULL = MODE_FILE | MODE_MONTH | MODE_PRINT | MODE_SORT // 0b1111
 } run_mode;
 
 /**

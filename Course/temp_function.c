@@ -842,6 +842,7 @@ int parse_arguments(int argc, char* argv[], cmd_args* args)
 
     // Обнуляем структуру
     memset(args, 0, sizeof(cmd_args));
+    args->mode = MODE_NONE;
 
     // Начинаем с 1, так как argv[0] - имя программы
     for (int i = 1; i < argc; i++)
@@ -860,7 +861,6 @@ int parse_arguments(int argc, char* argv[], cmd_args* args)
                 fprintf(stderr, "Error: Missing filename after -f\n");
                 return -1;
             case 'm': fprintf(stderr, "Error: Missing month after -m\n"); return -1;
-            // case 'y': fprintf(stderr, "Error: Missing year after -y\n"); return -1;
             case 'p': fprintf(stderr, "Error: Missing count after -p\n"); return -1;
             case 's': fprintf(stderr, "Error: Missing count after -s\n"); return -1;
             }
@@ -868,21 +868,51 @@ int parse_arguments(int argc, char* argv[], cmd_args* args)
 
         switch (arg[1])
         {
-        case 'f': args->filename = argv[i + 1]; break;
-        case 'm': sscanf(argv[i + 1], "%hhu", &args->month); break;
-        case 'p': sscanf(argv[i + 1], "%hhu", &args->printdb); break;
-        case 's': sscanf(argv[i + 1], "%c", &args->sort); break;
-        case 'h': printf(HELP_MSG); return 1;
+        case 'f':
+            args->filename = argv[i + 1];
+            args->mode |= MODE_FILE;
+            i++; // Пропускаем следующий аргумент (значение)
+            break;
+        case 'm':
+            sscanf(argv[i + 1], "%hhu", &args->month);
+            args->mode |= MODE_MONTH;
+            i++;
+            break;
+        case 'p':
+            sscanf(argv[i + 1], "%hhu", &args->printdb);
+            args->mode |= MODE_PRINT;
+            i++;
+            break;
+        case 's':
+            sscanf(argv[i + 1], "%c", &args->sort);
+            args->mode |= MODE_SORT;
+            i++;
+            break;
+        case 'h': return 1;
         default:
             fprintf(stderr, "Ошибка: неизвестная опция '-%c'\n", arg[1]);
             return -1;
         }
     }
 
-    // Проверка обязательных параметров
-    if (args->filename == NULL)
+    // Проверка обязательных параметров через флаги
+    if (!(args->mode & MODE_FILE))
     {
         fprintf(stderr, "Ошибка: не указан входной файл (используйте -f)\n");
+        return -1;
+    }
+
+    // Дополнительные проверки значений
+    if ((args->mode & MODE_MONTH) && (args->month > 12))
+    {
+        fprintf(stderr, "Ошибка: некорректный месяц (должен быть 1-12)\n");
+        return -1;
+    }
+
+    if ((args->mode & MODE_SORT) && (args->sort != 'd' && args->sort != 't'))
+    {
+        fprintf(stderr,
+            "Ошибка: некорректный критерий сортировки (должен быть 'd' или 't')\n");
         return -1;
     }
 

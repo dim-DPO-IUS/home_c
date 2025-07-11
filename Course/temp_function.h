@@ -17,17 +17,23 @@
 печатается первой).
 2. Сортировка требует извлечения всех данных во временный массив, что неэффективно по
 памяти.
+
 Как работает Двунаправленный список (Doubly Linked List): Каждый элемент имеет
 ссылки и на следующий (next), и на предыдущий (prev) элемент.
+
 Плюсы:
     Можно обходить как от начала к концу (как в файле), так и от конца к началу
-(как в сиеке на односвязном списке).
+    (как в сиеке на односвязном списке).
     Гибкость: поддерживает и стековые, и очередевые операции.
     Сортировка реализуется эффективнее (например, вставками).
+
 Минусы:
     Чуть сложнее реализация (нужно обновлять два указателя вместо одного).
-Когда использовать: Если нужны оба варианта обхода (прямой и обратный) или
-сортировка.
+
+Когда использовать:
+    Если нужны оба варианта обхода (прямой и обратный) или сортировка. Возможность
+обходить список в обе стороны позволяет производить сортировку только один раз и затем
+выводить список или по возратанию или по убыванию
  *
  */
 
@@ -53,7 +59,8 @@ static const char START_MSG[]
       "Required option:\n"
       "-f <file>    Specify input CSV file (required)\n\n"
       "Analysis options:\n"
-      "-m <month>   Show stats for specific month (1-12)\n\n"
+      "-m <month>   Show stats for specific month (1-12)\n"
+      "-m <month>   Show stats for all month (0)\n\n"
       "Data output options:\n"
       "-p <N>       Print first N records from dataset\n"
       "-s <criteria> Sort data (d - by date, t - by temperature)\n\n"
@@ -73,7 +80,7 @@ static const char HELP_MSG[]
       "Available options:\n"
       " -h            Show this help message\n"
       " -f <file>     Specify input CSV file\n"
-      " -m <month>    Show statistics for specific month (1-12)\n"
+      " -m <month>    Show statistics for specific or all month (1-12 or 0)\n"
       " -p <N>        Print first N records from the dataset\n"
       " -s <criteria> Sort data (d - by date, t - by temperature)\n"
       "\n";

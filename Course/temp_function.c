@@ -368,15 +368,12 @@ void print_list(const node* current, int num, bool reverse)
         printf("List is empty.\n");
         return;
     }
-    // Для прямого порядка (как в файле) начинаем с tail и идём по prev
-    // if (!reverse)
-    // {
-    //     while (current->next != NULL)
-    //     {
-    //         current = current->next; // Переходим к tail
-    //     }
-    // }
-    // Для прямого порядка начинаем с головы (идём от старого к новому)
+
+    printf("\nPrinting %d list values:\n", num);
+    printf("-------------------------------------\n");
+    printf("   №   | Date       | Time  | Temp  |\n");
+    printf("-------+------------+-------+-------|\n");
+
     if (!reverse)
     {
         while (current->prev != NULL)
@@ -388,15 +385,21 @@ void print_list(const node* current, int num, bool reverse)
     int cnt = 0;
     while (current != NULL && (num <= 0 || cnt < num))
     {
-        printf("%04d-%02d-%02d %02d:%02d %3d°C\n", current->data.year,
-            current->data.month, current->data.day, current->data.hour,
-            current->data.minute, current->data.temperature);
+        printf("%6d | %04d-%02d-%02d | %02d:%02d | %3d°C |\n",
+            cnt + 1, //
+            current->data.year, //
+            current->data.month, //
+            current->data.day, //
+            current->data.hour, //
+            current->data.minute, //
+            current->data.temperature);
 
         current = reverse ? current->prev : current->next;
         cnt++;
     }
 
-    if (current == NULL) printf("End of list.\n");
+    if (current == NULL) printf("End of list.");
+    printf("\n");
 }
 
 /*----------------------------------------------------------------------------*/
@@ -633,14 +636,13 @@ void print_monthly_stats(const temp_stats* stats, uint8_t month)
     //     return;
     // }
 
-    // Заголовок таблицы
-    printf("Monthly Temperature Statistics:\n");
-    printf("------------------------------------------------------\n");
-    printf(" Year | Month | Count | Avg Temp | Max Temp | Min Temp\n");
-    printf("------|-------|-------|----------|----------|---------\n");
-
     if (month == 0)
     {
+        // Заголовок таблицы
+        printf("\nMonthly Temperature Statistics:\n");
+        printf("------------------------------------------------------\n");
+        printf(" Year | Month | Count | Avg Temp | Max Temp | Min Temp\n");
+        printf("------|-------|-------|----------|----------|---------\n");
         // Вывод статистики по всем месяцам
         for (int i = 0; i < 12; i++)
         {
@@ -651,9 +653,15 @@ void print_monthly_stats(const temp_stats* stats, uint8_t month)
                     stats->monthly[i].max_temp, stats->monthly[i].min_temp);
             }
         }
+        printf("\n");
     }
     else if (month >= 1 && month <= 12)
     {
+        // Заголовок таблицы
+        printf("\nTemperature statistics for month No. %d:\n", month);
+        printf("------------------------------------------------------\n");
+        printf(" Year | Month | Count | Avg Temp | Max Temp | Min Temp\n");
+        printf("------|-------|-------|----------|----------|---------\n");
         // Вывод статистики за конкретный месяц
         int idx = month - 1;
         if (stats->monthly[idx].count > 0)
@@ -667,6 +675,7 @@ void print_monthly_stats(const temp_stats* stats, uint8_t month)
             printf("| %4d | %5s | %5s | %8s | %8s | %8s |\n", month, "N/A", "N/A",
                 "N/A", "N/A", "N/A");
         }
+        printf("\n");
     }
     else
     {
@@ -688,7 +697,7 @@ void print_yearly_stats(const temp_stats* stats)
     }
     if (stats->yearly.count > 0)
     {
-        printf("\nYearly statistics:\n");
+        printf("Yearly statistics:\n");
         printf("------------------------------------------------\n");
         printf(" Year | Count  | Avg Temp | Max Temp | Min Temp\n");
         printf("------|--------|----------|----------|----------\n");

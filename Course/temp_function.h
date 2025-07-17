@@ -133,16 +133,16 @@ typedef struct cmd_args {
  *
  * @note Для февраля високосные годы не проверяются автоматически.
  */
-#pragma pack(push, 1) // Отключить выравнивание
+// #pragma pack(push, 1) // Отключить выравнивание
 typedef struct sensor {
     uint16_t year; ///< Год (2000-2100)
-    uint8_t month : 4; ///< Месяц (1-12)
-    uint8_t day : 5; ///< День (1-31)
-    uint8_t hour : 5; ///< Часы (0-23)
-    uint8_t minute : 6; ///< Минуты (0-59)
+    uint8_t month; ///< Месяц (1-12)
+    uint8_t day; ///< День (1-31)
+    uint8_t hour; ///< Часы (0-23)
+    uint8_t minute; ///< Минуты (0-59)
     int8_t temperature; ///< Температура (°C)
 } sensor;
-#pragma pack(pop) // Вернуть выравнивание
+// #pragma pack(pop) // Вернуть выравнивание
 
 /**
  * @brief Узел связного списка, содержащий данные датчика.
